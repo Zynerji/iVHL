@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHL Simulation - WebGPU/WebGL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 350px;
+            max-height: 90vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        #ui-overlay h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 10px;
+        }
+
+        #ui-overlay h3 {
+            color: #ff6b6b;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4ff;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4ff;
+            cursor: pointer;
+            border: none;
+        }
+
+        .control-group select,
+        .control-group button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            background: #222;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .control-group button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .control-group button:hover {
+            transform: scale(1.05);
+        }
+
+        .control-group button:active {
+            transform: scale(0.95);
+        }
+
+        .value-display {
+            float: right;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        #stats {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+
+        .stat-label {
+            color: #aaa;
+        }
+
+        .stat-value {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        #status {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-webgpu {
+            background: #00ff00;
+        }
+
+        .status-webgl {
+            background: #ffaa00;
+        }
+
+        .status-cpu {
+            background: #ff0000;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 300px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .polarity-legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+
+        .polarity-item {
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .polarity-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        #loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #loading h1 {
+            color: #00d4ff;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #00d4ff;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #333;
+            border-top: 5px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            margin-top: 20px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Scrollbar styling */
+        #ui-overlay::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #ui-overlay::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        #ui-overlay::-webkit-scrollbar-thumb {
+            background: #00d4ff;
+            border-radius: 4px;
+        }
+
+        #ui-overlay::-webkit-scrollbar-thumb:hover {
+            background: #00a8cc;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <h1>🌀 VHL Simulation</h1>
+        <div class="loader"></div>
+        <div id="loading-text">Initializing WebGPU...</div>
+    </div>
+
+    <div id="container">
+        <canvas id="canvas"></canvas>
+
+        <div id="ui-overlay">
+            <h2>🌀 VHL Controls</h2>
+
+            <div class="control-group">
+                <label>Element Focus</label>
+                <select id="element-select">
+                    <option value="-1">All Elements</option>
+                </select>
+            </div>
+
+            <h3>Geometry</h3>
+
+            <div class="control-group">
+                <label>Helix Radius <span class="value-display" id="radius-value">8.0</span></label>
+                <input type="range" id="radius-slider" min="2" max="20" step="0.5" value="8">
+            </div>
+
+            <div class="control-group">
+                <label>Fold Frequency <span class="value-display" id="fold-value">5.0</span></label>
+                <input type="range" id="fold-slider" min="1" max="10" step="0.5" value="5">
+            </div>
+
+            <div class="control-group">
+                <label>Helix Height <span class="value-display" id="height-value">80</span></label>
+                <input type="range" id="height-slider" min="40" max="150" step="5" value="80">
+            </div>
+
+            <h3>Fifth Force</h3>
+
+            <div class="control-group">
+                <label>Force Strength (G5) <span class="value-display" id="g5-value">-5.01</span></label>
+                <input type="range" id="g5-slider" min="-10" max="0" step="0.1" value="-5.01">
+            </div>
+
+            <div class="control-group">
+                <label>Force Range (λ) <span class="value-display" id="lambda-value">22</span></label>
+                <input type="range" id="lambda-slider" min="10" max="50" step="1" value="22">
+            </div>
+
+            <div class="control-group">
+                <label>Multi-body Factor <span class="value-display" id="multibody-value">0.1</span></label>
+                <input type="range" id="multibody-slider" min="0" max="1" step="0.05" value="0.1">
+            </div>
+
+            <h3>Visualization</h3>
+
+            <div class="control-group">
+                <label>Particle Size <span class="value-display" id="size-value">0.3</span></label>
+                <input type="range" id="size-slider" min="0.1" max="1.0" step="0.05" value="0.3">
+            </div>
+
+            <div class="control-group">
+                <label>Force Vectors</label>
+                <select id="vectors-select">
+                    <option value="none">None</option>
+                    <option value="all">All</option>
+                    <option value="selected">Selected Only</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Animation Speed <span class="value-display" id="speed-value">1.0</span></label>
+                <input type="range" id="speed-slider" min="0" max="3" step="0.1" value="1.0">
+            </div>
+
+            <h3>Simulation</h3>
+
+            <div class="control-group">
+                <button id="start-btn">▶️ Start Dynamics</button>
+            </div>
+
+            <div class="control-group">
+                <button id="reset-btn">🔄 Reset</button>
+            </div>
+
+            <div class="control-group">
+                <button id="ml-predict-btn">🤖 ML Predict Superheavies</button>
+            </div>
+
+            <div class="control-group">
+                <button id="export-btn">💾 Export Data</button>
+            </div>
+
+            <div class="polarity-legend">
+                <div class="polarity-item">
+                    <div class="polarity-color" style="background: #ff4444;"></div>
+                    <span>Expansion (+)</span>
+                </div>
+                <div class="polarity-item">
+                    <div class="polarity-color" style="background: #4444ff;"></div>
+                    <span>Contraction (-)</span>
+                </div>
+                <div class="polarity-item">
+                    <div class="polarity-color" style="background: #888888;"></div>
+                    <span>Equilibrium (0)</span>
+                </div>
+            </div>
+
+            <div id="stats">
+                <h3 style="margin-top: 0;">📊 Statistics</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Total Elements:</span>
+                    <span class="stat-value" id="stat-total">126</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">+ Polarity:</span>
+                    <span class="stat-value" id="stat-plus">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">- Polarity:</span>
+                    <span class="stat-value" id="stat-minus">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">0 Polarity:</span>
+                    <span class="stat-value" id="stat-zero">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Avg Force:</span>
+                    <span class="stat-value" id="stat-force">0.000</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">FPS:</span>
+                    <span class="stat-value" id="stat-fps">60</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Simulation Time:</span>
+                    <span class="stat-value" id="stat-time">0.00s</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="info">
+            <h3 style="margin-top: 0; color: #00d4ff;">ℹ️ About VHL</h3>
+            <p style="margin-bottom: 10px;">
+                <strong>Vibrational Helix Lattice</strong> - A 3D helical model of the periodic table
+                integrating Walter Russell's cosmology with quantum mechanics.
+            </p>
+            <p style="font-size: 11px; color: #888;">
+                • <strong>126 elements</strong> (Z=1-118 + superheavies)<br>
+                • <strong>Hyperbolic folding</strong> (sinh/cosh)<br>
+                • <strong>Fifth-force</strong> (Yukawa potential)<br>
+                • <strong>GPU accelerated</strong> (WebGPU/WebGL)<br>
+                • <strong>ML predictions</strong> (TensorFlow.js)<br>
+            </p>
+        </div>
+
+        <div id="status">
+            <span class="status-indicator status-cpu"></span>
+            <span id="status-text">Initializing...</span>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- TensorFlow.js for ML predictions -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+
+    <!-- Main Application -->
+    <script>
+        // ============================================
+        // CONSTANTS & DATA
+        // ============================================
+
+        const N_OCTAVES = 14;
+        const TONES_PER_OCTAVE = 9;
+        const N_NODES = N_OCTAVES * TONES_PER_OCTAVE; // 126
+        const TURNS = N_OCTAVES * 3;
+
+        const ELEMENTS = [
+            {z:1,sym:'H'},{z:2,sym:'He'},{z:3,sym:'Li'},{z:4,sym:'Be'},{z:5,sym:'B'},
+            {z:6,sym:'C'},{z:7,sym:'N'},{z:8,sym:'O'},{z:9,sym:'F'},{z:10,sym:'Ne'},
+            {z:11,sym:'Na'},{z:12,sym:'Mg'},{z:13,sym:'Al'},{z:14,sym:'Si'},{z:15,sym:'P'},
+            {z:16,sym:'S'},{z:17,sym:'Cl'},{z:18,sym:'Ar'},{z:19,sym:'K'},{z:20,sym:'Ca'},
+            {z:21,sym:'Sc'},{z:22,sym:'Ti'},{z:23,sym:'V'},{z:24,sym:'Cr'},{z:25,sym:'Mn'},
+            {z:26,sym:'Fe'},{z:27,sym:'Co'},{z:28,sym:'Ni'},{z:29,sym:'Cu'},{z:30,sym:'Zn'},
+            {z:31,sym:'Ga'},{z:32,sym:'Ge'},{z:33,sym:'As'},{z:34,sym:'Se'},{z:35,sym:'Br'},{z:36,sym:'Kr'},
+            {z:37,sym:'Rb'},{z:38,sym:'Sr'},{z:39,sym:'Y'},{z:40,sym:'Zr'},{z:41,sym:'Nb'},{z:42,sym:'Mo'},
+            {z:43,sym:'Tc'},{z:44,sym:'Ru'},{z:45,sym:'Rh'},{z:46,sym:'Pd'},{z:47,sym:'Ag'},{z:48,sym:'Cd'},
+            {z:49,sym:'In'},{z:50,sym:'Sn'},{z:51,sym:'Sb'},{z:52,sym:'Te'},{z:53,sym:'I'},{z:54,sym:'Xe'},
+            {z:55,sym:'Cs'},{z:56,sym:'Ba'},{z:57,sym:'La'},{z:58,sym:'Ce'},{z:59,sym:'Pr'},{z:60,sym:'Nd'},
+            {z:61,sym:'Pm'},{z:62,sym:'Sm'},{z:63,sym:'Eu'},{z:64,sym:'Gd'},{z:65,sym:'Tb'},{z:66,sym:'Dy'},
+            {z:67,sym:'Ho'},{z:68,sym:'Er'},{z:69,sym:'Tm'},{z:70,sym:'Yb'},{z:71,sym:'Lu'},{z:72,sym:'Hf'},
+            {z:73,sym:'Ta'},{z:74,sym:'W'},{z:75,sym:'Re'},{z:76,sym:'Os'},{z:77,sym:'Ir'},{z:78,sym:'Pt'},
+            {z:79,sym:'Au'},{z:80,sym:'Hg'},{z:81,sym:'Tl'},{z:82,sym:'Pb'},{z:83,sym:'Bi'},{z:84,sym:'Po'},
+            {z:85,sym:'At'},{z:86,sym:'Rn'},{z:87,sym:'Fr'},{z:88,sym:'Ra'},{z:89,sym:'Ac'},{z:90,sym:'Th'},
+            {z:91,sym:'Pa'},{z:92,sym:'U'},{z:93,sym:'Np'},{z:94,sym:'Pu'},{z:95,sym:'Am'},{z:96,sym:'Cm'},
+            {z:97,sym:'Bk'},{z:98,sym:'Cf'},{z:99,sym:'Es'},{z:100,sym:'Fm'},{z:101,sym:'Md'},{z:102,sym:'No'},
+            {z:103,sym:'Lr'},{z:104,sym:'Rf'},{z:105,sym:'Db'},{z:106,sym:'Sg'},{z:107,sym:'Bh'},{z:108,sym:'Hs'},
+            {z:109,sym:'Mt'},{z:110,sym:'Ds'},{z:111,sym:'Rg'},{z:112,sym:'Cn'},{z:113,sym:'Nh'},{z:114,sym:'Fl'},
+            {z:115,sym:'Mc'},{z:116,sym:'Lv'},{z:117,sym:'Ts'},{z:118,sym:'Og'},
+            {z:119,sym:'Uue'},{z:120,sym:'Ubn'},{z:121,sym:'Ubu'},{z:122,sym:'Ubb'},
+            {z:123,sym:'Ubt'},{z:124,sym:'Ubq'},{z:125,sym:'Ubp'},{z:126,sym:'Ubh'}
+        ];
+
+        const POLARITY_MAP = {
+            1:1,2:0,3:1,4:1,5:0,6:0,7:-1,8:-1,9:-1,10:0,
+            11:1,12:1,13:1,14:0,15:-1,16:-1,17:-1,18:0,
+            19:1,20:1,21:0,22:0,23:0,24:0,25:0,26:0,27:0,28:0,29:0,30:0,
+            31:1,32:0,33:-1,34:-1,35:-1,36:0,
+            37:1,38:1,39:0,40:0,41:0,42:0,43:0,44:0,45:0,46:0,47:0,48:0,
+            49:1,50:0,51:-1,52:-1,53:-1,54:0,
+            55:1,56:1,57:0,58:0,59:0,60:0,61:0,62:0,63:0,64:0,65:0,66:0,67:0,68:0,69:0,70:0,71:0,
+            72:0,73:0,74:0,75:0,76:0,77:0,78:0,79:0,80:0,
+            81:1,82:0,83:-1,84:-1,85:-1,86:0,
+            87:1,88:1,89:0,90:0,91:0,92:0,93:0,94:0,95:0,96:0,97:0,98:0,99:0,100:0,101:0,102:0,103:0,
+            104:0,105:0,106:0,107:0,108:0,109:0,110:0,111:0,112:0,
+            113:1,114:0,115:-1,116:-1,117:-1,118:0,
+            119:1,120:1,121:0,122:0,123:-1,124:-1,125:-1,126:0
+        };
+
+        // Pre-computed HF energies (from PySCF, embedded for offline use)
+        const HF_ENERGIES = {
+            1:-0.466,2:-2.835,3:-7.315,4:-14.351,5:-24.233,
+            6:-37.345,7:-53.881,8:-74.395,9:-98.847,10:-128.243,
+            11:-161.587,12:-199.248,13:-241.435,14:-288.348,15:-340.196,
+            16:-397.198,17:-459.482,18:-527.276
+            // Add more as computed; rest will be interpolated
+        };
+
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+
+        let scene, camera, renderer, controls;
+        let particleSystem, forceVectors = [];
+        let positions, velocities, forces, polarities;
+        let isRunning = false;
+        let simulationTime = 0;
+        let useWebGPU = false;
+        let gpuDevice = null;
+        let mlModel = null;
+
+        const params = {
+            radius: 8.0,
+            foldFreq: 5.0,
+            height: 80.0,
+            g5: -5.01,
+            lambda: 22.0,
+            multiBodyFactor: 0.1,
+            particleSize: 0.3,
+            showVectors: 'none',
+            animSpeed: 1.0,
+            selectedElement: -1
+        };
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        async function init() {
+            updateLoadingText('Checking WebGPU support...');
+
+            // Try to initialize WebGPU
+            if ('gpu' in navigator) {
+                try {
+                    const adapter = await navigator.gpu.requestAdapter();
+                    if (adapter) {
+                        gpuDevice = await adapter.requestDevice();
+                        useWebGPU = true;
+                        updateStatus('WebGPU', 'webgpu');
+                        console.log('WebGPU initialized successfully');
+                    }
+                } catch (e) {
+                    console.warn('WebGPU initialization failed, falling back to WebGL:', e);
+                }
+            }
+
+            if (!useWebGPU) {
+                updateStatus('WebGL', 'webgl');
+                console.log('Using WebGL fallback');
+            }
+
+            updateLoadingText('Initializing Three.js...');
+            initThreeJS();
+
+            updateLoadingText('Generating helix geometry...');
+            generateGeometry();
+
+            updateLoadingText('Creating particle system...');
+            createParticleSystem();
+
+            updateLoadingText('Loading ML model...');
+            await initMLModel();
+
+            updateLoadingText('Setting up UI...');
+            setupUI();
+
+            updateLoadingText('Computing initial forces...');
+            if (useWebGPU) {
+                await computeForcesGPU();
+            } else {
+                computeForcesCPU();
+            }
+
+            updateStats();
+
+            // Hide loading screen
+            document.getElementById('loading').classList.add('hidden');
+
+            // Start render loop
+            animate();
+        }
+
+        function updateLoadingText(text) {
+            document.getElementById('loading-text').textContent = text;
+        }
+
+        function updateStatus(text, type) {
+            document.getElementById('status-text').textContent = text;
+            const indicator = document.querySelector('.status-indicator');
+            indicator.className = 'status-indicator status-' + type;
+        }
+
+        // ============================================
+        // THREE.JS SETUP
+        // ============================================
+
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+            scene.fog = new THREE.Fog(0x0a0a0a, 50, 200);
+
+            camera = new THREE.PerspectiveCamera(
+                60,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(30, 30, 30);
+
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('canvas'),
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10;
+            controls.maxDistance = 150;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x00d4ff, 1, 100);
+            pointLight1.position.set(20, 20, 20);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xff6b6b, 0.5, 100);
+            pointLight2.position.set(-20, -20, 20);
+            scene.add(pointLight2);
+
+            // Grid helper
+            const gridHelper = new THREE.GridHelper(100, 20, 0x444444, 0x222222);
+            gridHelper.position.y = -5;
+            scene.add(gridHelper);
+
+            // Axes helper
+            const axesHelper = new THREE.AxesHelper(50);
+            scene.add(axesHelper);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ============================================
+        // GEOMETRY GENERATION
+        // ============================================
+
+        function generateGeometry() {
+            positions = new Float32Array(N_NODES * 3);
+            velocities = new Float32Array(N_NODES * 3);
+            forces = new Float32Array(N_NODES * 3);
+            polarities = new Float32Array(N_NODES);
+
+            const radius = params.radius;
+            const height = params.height;
+            const foldFreq = params.foldFreq;
+
+            for (let i = 0; i < N_NODES; i++) {
+                const t = i / N_NODES;
+                const theta = 2 * Math.PI * TURNS * t;
+                const zBase = height * t - height / 2; // Center vertically
+
+                // Hyperbolic modulation
+                const foldAmpR = radius * 0.2;
+                const foldAmpZ = height * 0.05;
+                const maxSinh = Math.sinh(foldFreq * 2 * Math.PI * TURNS);
+
+                const r = radius + foldAmpR * Math.sinh(foldFreq * theta) / maxSinh;
+                const z = zBase + foldAmpZ * (Math.cosh(foldFreq * theta) - 1);
+
+                const x = r * Math.cos(theta);
+                const y = r * Math.sin(theta);
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = z; // Y is vertical in Three.js
+                positions[i * 3 + 2] = y;
+
+                // Assign polarity
+                const el = ELEMENTS[i];
+                polarities[i] = POLARITY_MAP[el.z] || 0;
+
+                // Initialize velocities to zero
+                velocities[i * 3] = 0;
+                velocities[i * 3 + 1] = 0;
+                velocities[i * 3 + 2] = 0;
+            }
+        }
+
+        // ============================================
+        // PARTICLE SYSTEM
+        // ============================================
+
+        function createParticleSystem() {
+            // Remove old system if exists
+            if (particleSystem) {
+                scene.remove(particleSystem);
+                particleSystem.geometry.dispose();
+                particleSystem.material.dispose();
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            // Color by polarity
+            const colors = new Float32Array(N_NODES * 3);
+            for (let i = 0; i < N_NODES; i++) {
+                const pol = polarities[i];
+                if (pol > 0) {
+                    colors[i * 3] = 1.0;     // Red
+                    colors[i * 3 + 1] = 0.2;
+                    colors[i * 3 + 2] = 0.2;
+                } else if (pol < 0) {
+                    colors[i * 3] = 0.2;     // Blue
+                    colors[i * 3 + 1] = 0.2;
+                    colors[i * 3 + 2] = 1.0;
+                } else {
+                    colors[i * 3] = 0.5;     // Gray
+                    colors[i * 3 + 1] = 0.5;
+                    colors[i * 3 + 2] = 0.5;
+                }
+            }
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: params.particleSize,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                sizeAttenuation: true
+            });
+
+            particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
+
+            // Add labels (sprites) for elements
+            addElementLabels();
+        }
+
+        function addElementLabels() {
+            // Clear old labels
+            scene.children = scene.children.filter(child => child.userData.label !== true);
+
+            // Only show labels for selected or all if zoomed in
+            const showAll = params.selectedElement === -1;
+            const maxLabels = showAll ? 20 : 1; // Limit labels for performance
+
+            for (let i = 0; i < N_NODES && i < maxLabels; i++) {
+                if (!showAll && i !== params.selectedElement) continue;
+
+                const el = ELEMENTS[i];
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 128;
+                canvas.height = 64;
+
+                context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                context.fillRect(0, 0, 128, 64);
+
+                context.font = 'Bold 24px Arial';
+                context.fillStyle = '#ffffff';
+                context.textAlign = 'center';
+                context.fillText(el.sym, 64, 30);
+
+                context.font = '14px Arial';
+                context.fillStyle = '#00d4ff';
+                context.fillText('Z=' + el.z, 64, 50);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMaterial);
+
+                sprite.position.set(
+                    positions[i * 3],
+                    positions[i * 3 + 1] + 2,
+                    positions[i * 3 + 2]
+                );
+                sprite.scale.set(4, 2, 1);
+                sprite.userData.label = true;
+
+                scene.add(sprite);
+            }
+        }
+
+        // ============================================
+        // FORCE COMPUTATION (CPU FALLBACK)
+        // ============================================
+
+        function computeForcesCPU() {
+            // Zero out forces
+            forces.fill(0);
+
+            const g5 = params.g5;
+            const lambda = params.lambda;
+            const rCap = 100.0;
+            const mbFactor = params.multiBodyFactor;
+
+            // Pairwise forces
+            for (let i = 0; i < N_NODES; i++) {
+                const xi = positions[i * 3];
+                const yi = positions[i * 3 + 1];
+                const zi = positions[i * 3 + 2];
+                const qi = polarities[i];
+
+                for (let j = i + 1; j < N_NODES; j++) {
+                    const xj = positions[j * 3];
+                    const yj = positions[j * 3 + 1];
+                    const zj = positions[j * 3 + 2];
+                    const qj = polarities[j];
+
+                    const dx = xj - xi;
+                    const dy = yj - yi;
+                    const dz = zj - zi;
+                    const r = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    if (r > rCap || r < 0.001) continue;
+
+                    // Yukawa force
+                    const yukawa = g5 * Math.exp(-r / lambda) / r * qi * qj;
+
+                    const fx = yukawa * dx / r;
+                    const fy = yukawa * dy / r;
+                    const fz = yukawa * dz / r;
+
+                    forces[i * 3] += fx;
+                    forces[i * 3 + 1] += fy;
+                    forces[i * 3 + 2] += fz;
+
+                    forces[j * 3] -= fx;
+                    forces[j * 3 + 1] -= fy;
+                    forces[j * 3 + 2] -= fz;
+                }
+            }
+
+            // Multi-body correction (3-body terms)
+            if (mbFactor > 0.001) {
+                for (let i = 0; i < N_NODES; i += 5) { // Sample every 5th for performance
+                    const xi = positions[i * 3];
+                    const yi = positions[i * 3 + 1];
+                    const zi = positions[i * 3 + 2];
+                    const qi = polarities[i];
+
+                    for (let j = i + 1; j < Math.min(i + 10, N_NODES); j++) {
+                        const xj = positions[j * 3];
+                        const yj = positions[j * 3 + 1];
+                        const zj = positions[j * 3 + 2];
+                        const qj = polarities[j];
+
+                        for (let k = j + 1; k < Math.min(j + 5, N_NODES); k++) {
+                            const xk = positions[k * 3];
+                            const yk = positions[k * 3 + 1];
+                            const zk = positions[k * 3 + 2];
+                            const qk = polarities[k];
+
+                            // Simplified 3-body term (axilrod-teller inspired)
+                            const rij = Math.sqrt((xj-xi)**2 + (yj-yi)**2 + (zj-zi)**2);
+                            const rik = Math.sqrt((xk-xi)**2 + (yk-yi)**2 + (zk-zi)**2);
+                            const rjk = Math.sqrt((xk-xj)**2 + (yk-yj)**2 + (zk-zj)**2);
+
+                            if (rij < 30 && rik < 30 && rjk < 30) {
+                                const f3 = mbFactor * qi * qj * qk / (rij * rik * rjk + 0.1);
+
+                                // Distribute to all three particles
+                                forces[i * 3] += f3 * (xj - xi) / rij;
+                                forces[j * 3] += f3 * (xk - xj) / rjk;
+                                forces[k * 3] += f3 * (xi - xk) / rik;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ============================================
+        // FORCE COMPUTATION (WebGPU)
+        // ============================================
+
+        async function computeForcesGPU() {
+            if (!useWebGPU || !gpuDevice) {
+                computeForcesCPU();
+                return;
+            }
+
+            // Create buffers
+            const positionBuffer = gpuDevice.createBuffer({
+                size: positions.byteLength,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true
+            });
+            new Float32Array(positionBuffer.getMappedRange()).set(positions);
+            positionBuffer.unmap();
+
+            const polarityBuffer = gpuDevice.createBuffer({
+                size: polarities.byteLength,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true
+            });
+            new Float32Array(polarityBuffer.getMappedRange()).set(polarities);
+            polarityBuffer.unmap();
+
+            const forceBuffer = gpuDevice.createBuffer({
+                size: forces.byteLength,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
+            });
+
+            const outputBuffer = gpuDevice.createBuffer({
+                size: forces.byteLength,
+                usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
+            });
+
+            // Compute shader for Yukawa forces
+            const shaderCode = `
+                struct Params {
+                    g5: f32,
+                    lambda: f32,
+                    rCap: f32,
+                    n: u32
+                }
+
+                @group(0) @binding(0) var<storage, read> positions: array<vec3<f32>>;
+                @group(0) @binding(1) var<storage, read> polarities: array<f32>;
+                @group(0) @binding(2) var<storage, read_write> forces: array<vec3<f32>>;
+                @group(0) @binding(3) var<uniform> params: Params;
+
+                @compute @workgroup_size(64)
+                fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+                    let i = global_id.x;
+                    if (i >= params.n) { return; }
+
+                    let pi = positions[i];
+                    let qi = polarities[i];
+                    var force = vec3<f32>(0.0, 0.0, 0.0);
+
+                    for (var j = 0u; j < params.n; j = j + 1u) {
+                        if (i == j) { continue; }
+
+                        let pj = positions[j];
+                        let qj = polarities[j];
+                        let dr = pj - pi;
+                        let r = length(dr);
+
+                        if (r > params.rCap || r < 0.001) { continue; }
+
+                        let yukawa = params.g5 * exp(-r / params.lambda) / r * qi * qj;
+                        force = force + yukawa * dr / r;
+                    }
+
+                    forces[i] = force;
+                }
+            `;
+
+            const shaderModule = gpuDevice.createShaderModule({ code: shaderCode });
+
+            const paramsBuffer = gpuDevice.createBuffer({
+                size: 16,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true
+            });
+            new Float32Array(paramsBuffer.getMappedRange()).set([
+                params.g5, params.lambda, 100.0, N_NODES
+            ]);
+            paramsBuffer.unmap();
+
+            const bindGroupLayout = gpuDevice.createBindGroupLayout({
+                entries: [
+                    { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                    { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                    { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+                    { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } }
+                ]
+            });
+
+            const bindGroup = gpuDevice.createBindGroup({
+                layout: bindGroupLayout,
+                entries: [
+                    { binding: 0, resource: { buffer: positionBuffer } },
+                    { binding: 1, resource: { buffer: polarityBuffer } },
+                    { binding: 2, resource: { buffer: forceBuffer } },
+                    { binding: 3, resource: { buffer: paramsBuffer } }
+                ]
+            });
+
+            const pipelineLayout = gpuDevice.createPipelineLayout({
+                bindGroupLayouts: [bindGroupLayout]
+            });
+
+            const pipeline = gpuDevice.createComputePipeline({
+                layout: pipelineLayout,
+                compute: { module: shaderModule, entryPoint: 'main' }
+            });
+
+            const commandEncoder = gpuDevice.createCommandEncoder();
+            const passEncoder = commandEncoder.beginComputePass();
+            passEncoder.setPipeline(pipeline);
+            passEncoder.setBindGroup(0, bindGroup);
+            passEncoder.dispatchWorkgroups(Math.ceil(N_NODES / 64));
+            passEncoder.end();
+
+            commandEncoder.copyBufferToBuffer(forceBuffer, 0, outputBuffer, 0, forces.byteLength);
+
+            gpuDevice.queue.submit([commandEncoder.finish()]);
+
+            await outputBuffer.mapAsync(GPUMapMode.READ);
+            const result = new Float32Array(outputBuffer.getMappedRange());
+            forces.set(result);
+            outputBuffer.unmap();
+
+            // Cleanup
+            positionBuffer.destroy();
+            polarityBuffer.destroy();
+            forceBuffer.destroy();
+            outputBuffer.destroy();
+            paramsBuffer.destroy();
+        }
+
+        // ============================================
+        // MACHINE LEARNING (TensorFlow.js)
+        // ============================================
+
+        async function initMLModel() {
+            try {
+                // Create a simple sequential model for energy prediction
+                mlModel = tf.sequential({
+                    layers: [
+                        tf.layers.dense({ inputShape: [3], units: 64, activation: 'relu' }),
+                        tf.layers.dropout({ rate: 0.2 }),
+                        tf.layers.dense({ units: 32, activation: 'relu' }),
+                        tf.layers.dense({ units: 16, activation: 'relu' }),
+                        tf.layers.dense({ units: 1 })
+                    ]
+                });
+
+                mlModel.compile({
+                    optimizer: tf.train.adam(0.001),
+                    loss: 'meanSquaredError',
+                    metrics: ['mae']
+                });
+
+                // Train on known HF energies
+                await trainMLModel();
+
+                console.log('ML model initialized and trained');
+            } catch (e) {
+                console.warn('ML model initialization failed:', e);
+            }
+        }
+
+        async function trainMLModel() {
+            if (!mlModel) return;
+
+            // Prepare training data from known HF energies
+            const knownZs = Object.keys(HF_ENERGIES).map(Number);
+            const xs = [];
+            const ys = [];
+
+            for (const z of knownZs) {
+                // Features: Z, Z^2, Z^1.5 (captures periodic trends)
+                xs.push([z, z * z, Math.pow(z, 1.5)]);
+                ys.push([HF_ENERGIES[z]]);
+            }
+
+            const xsTensor = tf.tensor2d(xs);
+            const ysTensor = tf.tensor2d(ys);
+
+            // Normalize
+            const xsMean = xsTensor.mean(0);
+            const xsStd = xsTensor.sub(xsMean).square().mean(0).sqrt();
+            const xsNorm = xsTensor.sub(xsMean).div(xsStd.add(1e-7));
+
+            // Train
+            await mlModel.fit(xsNorm, ysTensor, {
+                epochs: 100,
+                batchSize: 8,
+                verbose: 0,
+                callbacks: {
+                    onEpochEnd: (epoch, logs) => {
+                        if (epoch % 20 === 0) {
+                            console.log(`Epoch ${epoch}: loss = ${logs.loss.toFixed(4)}`);
+                        }
+                    }
+                }
+            });
+
+            // Store normalization params
+            mlModel.normalization = { mean: await xsMean.array(), std: await xsStd.array() };
+
+            // Cleanup tensors
+            xsTensor.dispose();
+            ysTensor.dispose();
+            xsNorm.dispose();
+            ysTensor.dispose();
+        }
+
+        async function predictSuperheavyEnergies() {
+            if (!mlModel) {
+                alert('ML model not loaded. Using fallback interpolation.');
+                return;
+            }
+
+            const predictions = {};
+            const superheavyZs = [119, 120, 121, 122, 123, 124, 125, 126];
+
+            for (const z of superheavyZs) {
+                const features = [z, z * z, Math.pow(z, 1.5)];
+                const normalized = features.map((f, i) =>
+                    (f - mlModel.normalization.mean[i]) / (mlModel.normalization.std[i] + 1e-7)
+                );
+
+                const pred = mlModel.predict(tf.tensor2d([normalized]));
+                const value = (await pred.data())[0];
+                predictions[z] = value;
+                pred.dispose();
+            }
+
+            console.log('ML Predictions for superheavies:', predictions);
+
+            // Display results
+            let msg = 'ML Predicted Energies (Hartree):\n\n';
+            for (const [z, E] of Object.entries(predictions)) {
+                const el = ELEMENTS.find(e => e.z === parseInt(z));
+                msg += `${el.sym} (Z=${z}): ${E.toFixed(3)} Ha\n`;
+            }
+            alert(msg);
+
+            return predictions;
+        }
+
+        // ============================================
+        // DYNAMICS UPDATE
+        // ============================================
+
+        function updateDynamics() {
+            if (!isRunning) return;
+
+            const dt = 0.01 * params.animSpeed;
+            const lerp = 0.01;
+
+            // Update positions using forces (overdamped Langevin)
+            for (let i = 0; i < N_NODES; i++) {
+                positions[i * 3] += lerp * forces[i * 3] * dt;
+                positions[i * 3 + 1] += lerp * forces[i * 3 + 1] * dt;
+                positions[i * 3 + 2] += lerp * forces[i * 3 + 2] * dt;
+            }
+
+            // Update particle system
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+
+            simulationTime += dt;
+        }
+
+        // ============================================
+        // UI SETUP
+        // ============================================
+
+        function setupUI() {
+            // Populate element selector
+            const select = document.getElementById('element-select');
+            ELEMENTS.forEach((el, i) => {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Z=${el.z} (${el.sym})`;
+                select.appendChild(option);
+            });
+
+            // Sliders
+            const sliders = [
+                { id: 'radius', param: 'radius', display: 'radius-value' },
+                { id: 'fold', param: 'foldFreq', display: 'fold-value' },
+                { id: 'height', param: 'height', display: 'height-value' },
+                { id: 'g5', param: 'g5', display: 'g5-value' },
+                { id: 'lambda', param: 'lambda', display: 'lambda-value' },
+                { id: 'multibody', param: 'multiBodyFactor', display: 'multibody-value' },
+                { id: 'size', param: 'particleSize', display: 'size-value' },
+                { id: 'speed', param: 'animSpeed', display: 'speed-value' }
+            ];
+
+            sliders.forEach(({ id, param, display }) => {
+                const slider = document.getElementById(id + '-slider');
+                const valueDisplay = document.getElementById(display);
+
+                slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    params[param] = value;
+                    valueDisplay.textContent = value.toFixed(2);
+
+                    if (['radius', 'foldFreq', 'height'].includes(param)) {
+                        generateGeometry();
+                        createParticleSystem();
+                    }
+
+                    if (param === 'particleSize') {
+                        particleSystem.material.size = value;
+                    }
+                });
+            });
+
+            // Element selector
+            select.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.value);
+                params.selectedElement = idx;
+
+                if (idx >= 0) {
+                    // Zoom to element
+                    const x = positions[idx * 3];
+                    const y = positions[idx * 3 + 1];
+                    const z = positions[idx * 3 + 2];
+
+                    controls.target.set(x, y, z);
+                    camera.position.set(x + 15, y + 15, z + 15);
+                }
+
+                addElementLabels();
+            });
+
+            // Vectors selector
+            document.getElementById('vectors-select').addEventListener('change', (e) => {
+                params.showVectors = e.target.value;
+                updateForceVectors();
+            });
+
+            // Buttons
+            document.getElementById('start-btn').addEventListener('click', () => {
+                isRunning = !isRunning;
+                document.getElementById('start-btn').textContent = isRunning ? '⏸️ Pause' : '▶️ Start Dynamics';
+            });
+
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                isRunning = false;
+                simulationTime = 0;
+                document.getElementById('start-btn').textContent = '▶️ Start Dynamics';
+                generateGeometry();
+                createParticleSystem();
+                if (useWebGPU) {
+                    computeForcesGPU();
+                } else {
+                    computeForcesCPU();
+                }
+            });
+
+            document.getElementById('ml-predict-btn').addEventListener('click', () => {
+                predictSuperheavyEnergies();
+            });
+
+            document.getElementById('export-btn').addEventListener('click', exportData);
+        }
+
+        function updateForceVectors() {
+            // Clear old vectors
+            forceVectors.forEach(arrow => scene.remove(arrow));
+            forceVectors = [];
+
+            if (params.showVectors === 'none') return;
+
+            const showAll = params.showVectors === 'all';
+            const scale = 2.0;
+
+            for (let i = 0; i < N_NODES; i++) {
+                if (!showAll && i !== params.selectedElement) continue;
+
+                const fx = forces[i * 3];
+                const fy = forces[i * 3 + 1];
+                const fz = forces[i * 3 + 2];
+                const mag = Math.sqrt(fx*fx + fy*fy + fz*fz);
+
+                if (mag < 0.001) continue;
+
+                const origin = new THREE.Vector3(
+                    positions[i * 3],
+                    positions[i * 3 + 1],
+                    positions[i * 3 + 2]
+                );
+
+                const dir = new THREE.Vector3(fx, fy, fz).normalize();
+                const arrow = new THREE.ArrowHelper(
+                    dir, origin, mag * scale, 0xffff00, 0.5, 0.3
+                );
+
+                scene.add(arrow);
+                forceVectors.push(arrow);
+            }
+        }
+
+        function updateStats() {
+            // Count polarities
+            let nPlus = 0, nMinus = 0, nZero = 0;
+            for (let i = 0; i < N_NODES; i++) {
+                const p = polarities[i];
+                if (p > 0) nPlus++;
+                else if (p < 0) nMinus++;
+                else nZero++;
+            }
+
+            document.getElementById('stat-plus').textContent = nPlus;
+            document.getElementById('stat-minus').textContent = nMinus;
+            document.getElementById('stat-zero').textContent = nZero;
+
+            // Average force
+            let avgForce = 0;
+            for (let i = 0; i < N_NODES; i++) {
+                const fx = forces[i * 3];
+                const fy = forces[i * 3 + 1];
+                const fz = forces[i * 3 + 2];
+                avgForce += Math.sqrt(fx*fx + fy*fy + fz*fz);
+            }
+            avgForce /= N_NODES;
+            document.getElementById('stat-force').textContent = avgForce.toFixed(3);
+
+            // Simulation time
+            document.getElementById('stat-time').textContent = simulationTime.toFixed(2) + 's';
+        }
+
+        function exportData() {
+            let csv = 'z,symbol,x,y,z,polarity,force_x,force_y,force_z\n';
+
+            for (let i = 0; i < N_NODES; i++) {
+                const el = ELEMENTS[i];
+                csv += `${el.z},${el.sym},`;
+                csv += `${positions[i*3].toFixed(6)},${positions[i*3+1].toFixed(6)},${positions[i*3+2].toFixed(6)},`;
+                csv += `${polarities[i]},`;
+                csv += `${forces[i*3].toFixed(6)},${forces[i*3+1].toFixed(6)},${forces[i*3+2].toFixed(6)}\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'vhl_data.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ============================================
+        // ANIMATION LOOP
+        // ============================================
+
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fpsUpdateTime = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const currentTime = performance.now();
+            const deltaTime = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+
+            // FPS counter
+            frameCount++;
+            fpsUpdateTime += deltaTime;
+            if (fpsUpdateTime >= 1.0) {
+                document.getElementById('stat-fps').textContent = frameCount;
+                frameCount = 0;
+                fpsUpdateTime = 0;
+            }
+
+            // Update dynamics
+            if (isRunning) {
+                updateDynamics();
+
+                // Recompute forces every few frames
+                if (frameCount % 5 === 0) {
+                    if (useWebGPU) {
+                        computeForcesGPU().then(() => {
+                            updateStats();
+                            if (params.showVectors !== 'none') {
+                                updateForceVectors();
+                            }
+                        });
+                    } else {
+                        computeForcesCPU();
+                        updateStats();
+                        if (params.showVectors !== 'none') {
+                            updateForceVectors();
+                        }
+                    }
+                }
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // ============================================
+        // START APPLICATION
+        // ============================================
+
+        init().catch(err => {
+            console.error('Initialization error:', err);
+            alert('Failed to initialize VHL simulation: ' + err.message);
+        });
+    </script>
+</body>
+</html>

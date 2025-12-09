@@ -5,3 +5,5 @@ matplotlib>=3.7.0
 pyscf>=2.3.0
 plotly>=5.17.0
 pandas>=2.0.0
+flask>=3.0.0
+flask-cors>=4.0.0
