@@ -1,20 +1,13 @@
 # iVHL GPU-Accelerated Simulation Docker Image
 # ==============================================
-#
-# Includes:
-# - NVIDIA CUDA 12.5
-# - PyTorch with GPU support
-# - vLLM for Qwen2.5-2B LLM
-# - PyVista for GPU rendering
-# - LaTeX for whitepaper generation
 
 FROM nvidia/cuda:12.5.0-devel-ubuntu22.04
 
-# Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
 
-# Install system dependencies (using Python 3.10 from Ubuntu 22.04)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -22,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     curl \
-    vim \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
@@ -34,63 +26,63 @@ RUN apt-get update && apt-get install -y \
     texlive-fonts-recommended \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
-RUN python3 -m pip install --upgrade pip setuptools wheel
+# Upgrade pip and install build tools
+RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install PyTorch with CUDA support
-RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Install PyTorch (use CUDA 12.1 compatible version, smaller install)
+RUN pip3 install --no-cache-dir \
+    torch==2.1.0 \
+    torchvision==0.16.0 \
+    torchaudio==2.1.0 \
+    --index-url https://download.pytorch.org/whl/cu121
 
-# Install vLLM for LLM inference
-RUN pip3 install vllm
+# Install core dependencies in batches to avoid timeouts
+RUN pip3 install --no-cache-dir \
+    numpy \
+    scipy \
+    pillow \
+    matplotlib
 
-# Install visualization and web frameworks
-RUN pip3 install \
-    pyvista \
-    vtk \
+RUN pip3 install --no-cache-dir \
     fastapi \
     uvicorn[standard] \
     websockets \
-    pillow \
-    matplotlib \
-    plotly
-
-# Install scientific computing libraries
-RUN pip3 install \
-    numpy \
-    scipy \
-    pyscf \
-    networkx \
-    sympy \
-    pyyaml
-
-# Install additional requirements
-RUN pip3 install \
-    pytest \
-    black \
+    pyyaml \
     h5py
 
-# Create app directory
+RUN pip3 install --no-cache-dir \
+    pyvista \
+    vtk \
+    plotly
+
+# Install vLLM (may take a while)
+RUN pip3 install --no-cache-dir vllm
+
+# Install remaining scientific libraries
+RUN pip3 install --no-cache-dir \
+    networkx \
+    sympy \
+    pytest
+
+# Install PySCF (optional, can be slow)
+RUN pip3 install --no-cache-dir pyscf || echo "PySCF install failed, skipping"
+
 WORKDIR /app
 
 # Copy application code
-COPY . /app/
+COPY ivhl/ /app/ivhl/
+COPY web_monitor/ /app/web_monitor/
+COPY simulations/ /app/simulations/
+COPY docker/gpu_detect_and_scale.py /app/docker/
+COPY docker/entrypoint.sh /app/docker/
+COPY configs/ /app/configs/
 
-# Create results directory
+RUN chmod +x /app/docker/entrypoint.sh
 RUN mkdir -p /results
 
-# GPU detection and auto-scaling script
-COPY docker/gpu_detect_and_scale.py /app/docker/
-
-# Entrypoint script
-COPY docker/entrypoint.sh /app/docker/
-RUN chmod +x /app/docker/entrypoint.sh
-
-# Expose ports
 EXPOSE 8080 8000
 
-# Environment variables
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
 
-# Set entrypoint
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
