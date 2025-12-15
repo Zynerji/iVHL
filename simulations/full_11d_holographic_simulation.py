@@ -54,13 +54,13 @@ import time
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Import iVHL modules
-from vhl_holographic_resonance import HolographicResonanceSimulator
-from gft_condensate_dynamics import GFTCondensateSimulator
-from tensor_network_holography import MERATensorNetwork, AdSBulkReconstructor
-from gw_lattice_mode import GWLatticeConfig, GWLatticeProbe
-from gw_fractal_analysis import FractalDimensionAnalyzer, HarmonicSeriesDetector
-from simulation_report_generator import SimulationReport, IntegratedReportGenerator
+# Import iVHL modules (new package structure)
+from ivhl.resonance.holographic_resonance import HolographicResonanceSimulator
+from ivhl.gft.condensate_dynamics import GFTCondensateSimulator
+from ivhl.tensor_networks.holography import MERATensorNetwork, AdSBulkReconstructor
+from ivhl.gw.lattice_mode import GWLatticeConfig, GWLatticeProbe
+from ivhl.gw.fractal_analysis import FractalDimensionAnalyzer, HarmonicSeriesDetector
+from ivhl.integration.report_generator import SimulationReport, IntegratedReportGenerator
 
 
 class GPUAutoScaler:

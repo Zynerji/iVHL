@@ -55,10 +55,10 @@ See [`DEPLOY_H100.md`](DEPLOY_H100.md) for complete deployment guide.
 pip install -r requirements.txt
 
 # Run holographic resonance dashboard
-streamlit run vhl_resonance_streamlit.py
+streamlit run dashboards/resonance_dashboard.py
 
 # Run GW lattice analysis
-streamlit run gw_streamlit_dashboard.py
+streamlit run dashboards/gw_dashboard.py
 ```
 
 ---
@@ -86,7 +86,7 @@ Simulates wave interference on spherical boundary creating 3D resonant structure
 
 **Usage**:
 ```python
-from vhl_holographic_resonance import HolographicResonator
+from ivhl.resonance.holographic_resonance import HolographicResonator
 
 resonator = HolographicResonator(
     num_sources=500,
@@ -184,10 +184,10 @@ RL-driven exploration of parameter space:
 
 **Usage**:
 ```python
-from simulation_report_generator import IntegratedReportGenerator
+from ivhl.integration.report_generator import IntegratedReportGenerator
 
 generator = IntegratedReportGenerator(
-    output_base_dir=Path("reports"),
+    output_base_dir=Path("whitepapers"),
     auto_commit=True,
     compile_pdf=True
 )
@@ -266,68 +266,85 @@ files = generator.generate_full_report(
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure (Clean Package Organization)
 
 ```
 iVHL/
-├── 🌀 Holographic Resonance
-│   ├── vhl_holographic_resonance.py    # Core physics engine (613 lines)
-│   ├── vhl_vortex_controller.py        # Trajectory control (Fourier + RNN)
-│   ├── vhl_resonance_viz.py            # PyVista visualization (440 lines)
-│   ├── vhl_resonance_streamlit.py      # Web interface
-│   └── vhl_integration.py              # Element mapping
+├── 📦 ivhl/                            # Core Python Package
+│   ├── resonance/                     # Holographic boundary dynamics
+│   │   ├── holographic_resonance.py  # Core physics engine
+│   │   ├── visualization.py          # PyVista 3D rendering
+│   │   ├── vortex_controller.py      # Basic vortex control
+│   │   └── vortex_control_advanced.py # Fourier/RNN control
+│   ├── gft/                           # Group Field Theory
+│   │   ├── condensate_dynamics.py    # Gross-Pitaevskii dynamics
+│   │   └── tensor_models.py          # Colored tensors, melonics
+│   ├── tensor_networks/               # MERA, HaPPY, AdS/CFT
+│   │   ├── holography.py             # MERA construction
+│   │   ├── stack_weaving.py          # 8-layer unified framework
+│   │   └── ads_cft_entanglement.py   # Ryu-Takayanagi entropy
+│   ├── gw/                            # Gravitational wave analysis
+│   │   ├── lattice_mode.py           # Waveforms, perturbations
+│   │   ├── fractal_analysis.py       # Fractal dimension, harmonics
+│   │   └── rl_discovery.py           # RL rewards for GW
+│   ├── rl/                            # Reinforcement learning
+│   │   ├── sac_core.py               # Soft Actor-Critic
+│   │   ├── sac_training.py           # SAC training utilities
+│   │   ├── sac_rewards.py            # Reward engineering
+│   │   ├── td3_sac_core.py           # Hybrid TD3-SAC
+│   │   └── td3_sac_training.py       # Hybrid training
+│   ├── integration/                   # API & utilities
+│   │   ├── api.py                    # REST API interface
+│   │   ├── integration.py            # Cross-module integration
+│   │   └── report_generator.py       # JSON/MD/LaTeX/PDF
+│   └── legacy/                        # Deprecated modules
 │
-├── 🌌 Group Field Theory & Tensor Networks
-│   ├── gft_tensor_models.py            # Colored tensors, melonic dominance (580 lines)
-│   ├── gft_condensate_dynamics.py      # Mean-field, phase diagram (700 lines)
-│   ├── holographic_stack_weaving.py    # 8-layer unified framework (1000 lines)
-│   ├── tensor_network_holography.py    # MERA/HaPPY codes
-│   ├── vhl_ads_cft_entanglement.py     # Ryu-Takayanagi entropy
-│   └── vhl_vortex_control_advanced.py  # Bit-thread bundling, M-theory probes
+├── 🎨 dashboards/                      # Streamlit interfaces
+│   ├── resonance_dashboard.py        # Holographic resonance UI
+│   ├── gw_dashboard.py               # GW lattice analysis
+│   ├── sac_dashboard.py              # RL training visualization
+│   ├── webgpu_component.py           # WebGPU acceleration
+│   └── webgpu_client.html            # Browser GPU rendering
 │
-├── 🌊 LIGO-Inspired GW Lattice
-│   ├── gw_lattice_mode.py              # Waveforms, perturbations, strain (887 lines)
-│   ├── gw_fractal_analysis.py          # Fractal dim, harmonics, lattice detect (895 lines)
-│   ├── gw_rl_discovery.py              # RL rewards, discovery modes (790 lines)
-│   └── gw_streamlit_dashboard.py       # Interactive visualization (906 lines)
+├── 🔬 simulations/                     # Simulation scripts
+│   ├── README.md                     # Simulation guide
+│   └── full_11d_holographic_simulation.py
 │
-├── 🤖 Reinforcement Learning
-│   ├── td3_sac_hybrid_core.py          # Core hybrid algorithm
-│   ├── td3_sac_hybrid_training.py      # Training loop, online learning
-│   ├── td3_sac_hybrid_benchmarks.py    # Benchmarks vs pure TD3/SAC
-│   ├── sac_core.py                     # Soft Actor-Critic implementation
-│   └── sac_training.py                 # SAC training utilities
+├── 🧪 tests/                           # Test suites
+│   └── test_report_pipeline.py       # End-to-end test
 │
-├── 📊 Automated Reporting
-│   └── simulation_report_generator.py  # JSON/MD/LaTeX/PDF generation (600+ lines)
+├── ⚙️ scripts/                         # Utility scripts
+│   ├── benchmarks.py                 # Performance profiling
+│   ├── compiled_ops.py               # torch.compile examples
+│   └── sac_example.py                # SAC usage example
+│
+├── ⚙️ configs/                         # JSON configurations
+│   ├── mera_network.json             # Tensor network config
+│   └── multi_vortex_config.json      # Vortex parameters
+│
+├── 📚 docs/                            # Documentation
+│   ├── DEPLOY_H100.md                # H100 deployment guide
+│   ├── TD3_SAC_HYBRID_GUIDE.md       # RL training guide
+│   └── [10+ other guides]
+│
+├── 📄 whitepapers/                     # Generated PDF reports
+│   └── report_YYYYMMDD_HHMMSS/       # Timestamped reports
+│
+├── 🗃️ Data & Outputs
+│   ├── checkpoints/                  # Model checkpoints (gitignored)
+│   ├── logs/                         # Training logs (gitignored)
+│   └── reports/                      # Simulation data (gitignored)
 │
 ├── 🐳 Docker Deployment
-│   ├── Dockerfile                      # H100-optimized (CUDA 12.5, LaTeX)
-│   ├── .dockerignore                   # Build optimization
-│   └── DEPLOY_H100.md                  # Deployment guide (600+ lines)
+│   ├── Dockerfile                    # H100-optimized (CUDA 12.5)
+│   └── .dockerignore                 # Build optimization
 │
-├── 🌐 WebGPU Visualization
-│   ├── streamlit_webgpu_component.py   # Client-side GPU viz (550+ lines)
-│   └── vhl_webgpu.html                 # Standalone browser version
-│
-├── ⚙️ Optimization
-│   ├── compiled_ops.py                 # torch.compile hot paths
-│   ├── benchmarks.py                   # Performance profiling
-│   └── utils/                          # Helper utilities
-│
-├── 📚 Documentation
-│   ├── README.md                       # This file
-│   ├── DEPLOY_H100.md                  # H100 deployment
-│   ├── HOLOGRAPHIC_EXTENSION.md        # Resonance documentation (3000+ lines)
-│   ├── TD3_SAC_HYBRID_GUIDE.md         # RL guide
-│   ├── SAC_INTEGRATION_GUIDE.md        # SAC specifics
-│   └── LOCAL_DEVELOPMENT_GUIDE.md      # Development setup
-│
-└── 📦 Data & Outputs
-    ├── reports/                        # Generated simulation reports
-    ├── checkpoints/                    # Model checkpoints
-    ├── logs/                           # Training logs
-    └── results/                        # Exported results
+└── 📋 Project Files
+    ├── README.md                     # This document
+    ├── README.tex                    # LaTeX version
+    ├── Hello_Claude.md               # Claude AI context file
+    ├── requirements.txt              # Python dependencies
+    └── .gitignore                    # Git exclusions
 ```
 
 ---

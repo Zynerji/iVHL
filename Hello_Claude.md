@@ -266,33 +266,44 @@ docker run --gpus all \
 4. Run `tests/test_report_pipeline.py` to validate environment
 5. Launch Streamlit dashboard: `streamlit run vhl_resonance_streamlit.py`
 
-### Common Tasks
+###Common Tasks
 
 #### Add New Waveform Type
-1. Edit `gw_lattice_mode.py` → `GWWaveformGenerator` class
+1. Edit `ivhl/gw/lattice_mode.py` → `GWWaveformGenerator` class
 2. Add method like `def my_waveform(self) -> torch.Tensor`
 3. Update `perturbation_type` in `GWLatticeConfig`
 4. Test with `GWLatticeProbe`
 
 #### Add New RL Reward
-1. Edit `gw_rl_discovery.py` or `sac_rewards.py`
+1. Edit `ivhl/gw/rl_discovery.py` or `ivhl/rl/sac_rewards.py`
 2. Add method to `GWRewardComputer` or `SACRewardComputer`
 3. Update `weights` dictionary
 4. Add to discovery campaign in training script
 
 #### Create New Simulation
 1. Create Python file in `simulations/`
-2. Import relevant modules (gft, tensor_network, gw, etc.)
+2. Import modules using new package structure:
+   ```python
+   from ivhl.resonance import holographic_resonance
+   from ivhl.gft import condensate_dynamics
+   from ivhl.gw import lattice_mode
+   from ivhl.integration import report_generator
+   ```
 3. Configure parameters
 4. Run simulation
 5. Generate report with `IntegratedReportGenerator`
-6. Export results to `reports/`
+6. Export results to `whitepapers/`
 
 #### Modify Holographic Encoding
-1. Edit `vhl_holographic_resonance.py` for boundary dynamics
-2. Edit `tensor_network_holography.py` for bulk reconstruction
+1. Edit `ivhl/resonance/holographic_resonance.py` for boundary dynamics
+2. Edit `ivhl/tensor_networks/holography.py` for bulk reconstruction
 3. Ensure consistency between boundary field and bulk geometry
 4. Validate with entanglement entropy checks (RT formula)
+
+#### Run Dashboards
+1. Resonance: `streamlit run dashboards/resonance_dashboard.py`
+2. GW Analysis: `streamlit run dashboards/gw_dashboard.py`
+3. RL Training: `streamlit run dashboards/sac_dashboard.py`
 
 ### Testing
 - **Unit tests**: (TODO - to be added in `tests/`)
@@ -382,32 +393,86 @@ docker run --gpus all \
 
 ---
 
-## File Structure Summary
+## File Structure Summary (CLEAN PACKAGE ORGANIZATION)
 
 ```
 iVHL/
 ├── Hello_Claude.md           ← YOU ARE HERE
 ├── README.md                 ← Public-facing overview
+├── README.tex                ← LaTeX version of README
 ├── Dockerfile                ← H100-optimized container
 ├── requirements.txt          ← Python dependencies
-├── configs/                  ← JSON configuration files
+│
+├── ivhl/                     ← CORE PYTHON PACKAGE
+│   ├── __init__.py
+│   ├── resonance/           ← Holographic boundary dynamics
+│   │   ├── holographic_resonance.py
+│   │   ├── visualization.py
+│   │   ├── vortex_controller.py
+│   │   └── vortex_control_advanced.py
+│   ├── gft/                 ← Group Field Theory
+│   │   ├── condensate_dynamics.py
+│   │   └── tensor_models.py
+│   ├── tensor_networks/     ← MERA, RT formula, AdS/CFT
+│   │   ├── holography.py
+│   │   ├── stack_weaving.py
+│   │   └── ads_cft_entanglement.py
+│   ├── gw/                  ← GW lattice analysis
+│   │   ├── lattice_mode.py
+│   │   ├── fractal_analysis.py
+│   │   └── rl_discovery.py
+│   ├── rl/                  ← Reinforcement learning
+│   │   ├── sac_core.py
+│   │   ├── sac_training.py
+│   │   ├── sac_rewards.py
+│   │   ├── td3_sac_core.py
+│   │   └── td3_sac_training.py
+│   ├── integration/         ← API, reports, utilities
+│   │   ├── api.py
+│   │   ├── integration.py
+│   │   └── report_generator.py
+│   └── legacy/              ← Deprecated modules
+│       └── [old code]
+│
+├── dashboards/               ← Streamlit interfaces
+│   ├── resonance_dashboard.py
+│   ├── gw_dashboard.py
+│   ├── sac_dashboard.py
+│   ├── webgpu_component.py
+│   └── webgpu_client.html
+│
+├── scripts/                  ← Utility scripts
+│   ├── benchmarks.py
+│   ├── compiled_ops.py
+│   └── sac_example.py
+│
+├── simulations/              ← Simulation scripts
+│   ├── README.md
+│   └── full_11d_holographic_simulation.py
+│
+├── tests/                    ← Test scripts
+│   └── test_report_pipeline.py
+│
+├── configs/                  ← JSON configurations
 │   ├── mera_network.json
 │   ├── multi_vortex_config.json
 │   └── vhl_ccsd_data.json
-├── docs/                     ← Detailed guides
+│
+├── docs/                     ← All documentation
 │   ├── DEPLOY_H100.md
-│   ├── QUICKSTART_TN_HOLOGRAPHY.md
 │   ├── TD3_SAC_HYBRID_GUIDE.md
-│   └── ...
-├── simulations/              ← Simulation scripts (you'll create these)
-├── tests/                    ← Test scripts
-│   └── test_report_pipeline.py
-├── reports/                  ← Generated reports (gitignored)
+│   └── [10 other guides]
+│
+├── whitepapers/              ← Generated PDF reports
+│   └── README.md
+│
 ├── assets/                   ← Images, diagrams
-├── archive/                  ← Deprecated code, old backups
-├── [Core modules: vhl_*.py, gft_*.py, gw_*.py, etc.]
-└── [RL modules: td3_sac_*.py, sac_*.py]
+├── archive/                  ← Deprecated code
+└── utils/                    ← Helper utilities
 ```
+
+**IMPORTANT**: The root directory is now CLEAN - no scattered .py files!
+All Python code is organized in the `ivhl/` package with logical submodules.
 
 ---
 
