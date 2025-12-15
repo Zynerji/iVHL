@@ -1,0 +1,50 @@
+# Multi-Scale Framework Configuration
+# ====================================
+
+boundary:
+  num_nodes: 126
+  sphere_radius: 10.0
+  grid_resolution: 64
+  timesteps: 100
+  dt: 0.01
+  device: cuda
+
+gft:
+  grid_size: 32
+  box_size: 20.0
+  num_colors: 4
+  timesteps: 100
+  dt: 0.01
+  interaction_strength: 0.1
+  potential_strength: 0.5
+  device: cuda
+
+mera:
+  depth: 5
+  bond_dimension: 8
+  boundary_dimension: 64
+  device: cuda
+
+perturbation:
+  waveform_type: inspiral
+  amplitude: 0.1
+  frequency_start: 0.1
+  frequency_end: 1.0
+  duration: 10.0
+
+rl_discovery:
+  state_dim: 10
+  action_dim: 5
+  hidden_dim: 128
+  episodes: 100
+  learning_rate: 0.001
+
+upscaling:
+  scales: [64, 32, 16, 8, 4]
+  projection_method: pca
+  compression_ratio: 0.5
+
+analysis:
+  output_dir: results/
+  plot_format: png
+  dpi: 300

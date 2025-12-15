@@ -518,3 +518,173 @@ If using iVHL in research:
 ---
 
 *Computational exploration of holographic duality, emergent geometry, and quantum-classical correspondence.*
+
+---
+
+## Multi-Scale Holographic Exploration Framework
+
+**IMPORTANT DISCLAIMER**: This framework is a computational exploration of mathematical models including holographic resonance, tensor networks, and emergent patterns. It does NOT claim to explain physical phenomena, discover new laws, or predict dark matter/dark energy.
+
+### Overview
+
+The multi-scale framework provides tools for exploring geometric patterns through multiple computational layers:
+
+1. **Boundary Resonance** - Wave interference patterns on spherical boundaries
+2. **GFT Field Evolution** - Gross-Pitaevskii dynamics with colored tensor structure
+3. **MERA Bulk Reconstruction** - Tensor network holographic compression
+4. **Perturbation Analysis** - Lattice stability under external perturbations
+5. **RL Discovery** - Reinforcement learning for configuration optimization
+6. **Multi-Scale Upscaling** - Information projection across scales
+7. **Analysis & Visualization** - Comprehensive result analysis
+
+### Quick Start
+
+```bash
+# Install dependencies
+pip install torch numpy matplotlib pyyaml pytest
+
+# Run basic exploration
+python simulations/multiscale_exploration.py
+
+# Run tests
+pytest tests/test_multiscale.py -v
+```
+
+### Module Reference
+
+| Module | Description | Key Classes |
+|--------|-------------|-------------|
+| `ivhl.multiscale.boundary_resonance` | Spherical wave interference | `BoundaryResonanceSimulator` |
+| `ivhl.multiscale.gft_field` | GFT field evolution | `GFTFieldEvolver` |
+| `ivhl.multiscale.mera_bulk` | Tensor network reconstruction | `MERABulkReconstructor` |
+| `ivhl.multiscale.perturbation_engine` | Stability analysis | `PerturbationEngine` |
+| `ivhl.multiscale.rl_discovery` | RL optimization | `RLDiscoveryAgent` |
+| `ivhl.multiscale.upscaling` | Multi-scale projection | `MultiScaleUpscaler` |
+| `ivhl.multiscale.analysis` | Result analysis | `SimulationAnalyzer` |
+
+### Configuration
+
+Edit `configs/multiscale_config.yaml` to customize:
+
+```yaml
+boundary:
+  num_nodes: 126
+  grid_resolution: 64
+  timesteps: 100
+  device: cuda  # or 'cpu'
+
+gft:
+  grid_size: 32
+  num_colors: 4
+  interaction_strength: 0.1
+```
+
+### Example Usage
+
+```python
+from ivhl.multiscale import BoundaryResonanceSimulator, BoundaryConfig
+
+# Configure simulation
+config = BoundaryConfig(
+    num_nodes=126,
+    grid_resolution=64,
+    timesteps=100
+)
+
+# Run simulation
+simulator = BoundaryResonanceSimulator(config)
+results = simulator.run_simulation()
+
+# Analyze results
+entropy = simulator.compute_entropy(results['field_evolution'][-1])
+print(f"Final field entropy: {entropy:.4f}")
+```
+
+### Testing
+
+```bash
+# Run all tests
+pytest tests/test_multiscale.py -v
+
+# Run specific test class
+pytest tests/test_multiscale.py::TestGFTEvolution -v
+
+# Run with coverage
+pytest tests/test_multiscale.py --cov=ivhl.multiscale
+```
+
+### Output Structure
+
+Results are saved to `results/` directory:
+
+```
+results/
+├── boundary_results.npz       # Boundary field evolution
+├── gft_results.npz           # GFT field snapshots
+├── multiscale_analysis.json  # Analysis metrics
+└── multiscale_summary.png    # Visualization plots
+```
+
+### GPU Acceleration
+
+The framework supports CUDA acceleration:
+
+```python
+config = BoundaryConfig(device="cuda")  # Use GPU
+config = BoundaryConfig(device="cpu")   # Use CPU
+```
+
+**Performance** (approximate):
+- H100 GPU: 10-15 seconds per full pipeline
+- CPU: ~5 minutes per full pipeline
+
+### Scientific Interpretation
+
+All results should be interpreted as:
+- ✓ Mathematical patterns in computational models
+- ✓ Information-theoretic metrics
+- ✓ Geometric structure exploration
+
+NOT as:
+- ✗ Predictions about physical dark matter/energy
+- ✗ Claims about discovering new physical laws
+- ✗ Models of real quantum gravity
+
+### Troubleshooting
+
+**CUDA out of memory:**
+```python
+# Reduce grid size
+config = GFTConfig(grid_size=16)  # Instead of 32
+```
+
+**Slow CPU performance:**
+```python
+# Reduce timesteps
+config = BoundaryConfig(timesteps=50)  # Instead of 100
+```
+
+### Contributing
+
+Contributions welcome! Please ensure:
+- All code includes proper disclaimers
+- Tests pass: `pytest tests/ -v`
+- Code formatted: `black ivhl/`
+- Documentation updated
+
+### References
+
+1. Maldacena, J. (1999). The Large N Limit of Superconformal Field Theories
+2. Ryu, S., Takayanagi, T. (2006). Holographic Derivation of Entanglement Entropy
+3. Vidal, G. (2007). Entanglement Renormalization (MERA)
+4. PySCF Documentation: https://pyscf.org
+
+### License
+
+MIT License - See LICENSE file for details.
+
+---
+
+**Framework Version**: 1.0.0  
+**Last Updated**: 2025-12-15  
+**Status**: Research/Development
