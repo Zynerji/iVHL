@@ -66,6 +66,7 @@ RUN pip install --no-cache-dir \
     --index-url https://download.pytorch.org/whl/cu121
 
 # Install core scientific Python packages
+# scipy includes signal processing for GW lattice analysis (FFT, curve fitting)
 RUN pip install --no-cache-dir \
     numpy==1.26.4 \
     scipy==1.11.4 \
