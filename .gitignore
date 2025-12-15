@@ -40,3 +40,17 @@ Thumbs.db
 
 # Streamlit
 .streamlit/
+
+# Generated outputs
+reports/
+whitepapers/report_*/
+checkpoints/*.pt
+checkpoints/*.pth
+logs/*.log
+*.png
+*.jpg
+*.pdf
+*.aux
+*.log
+*.out
+*.toc

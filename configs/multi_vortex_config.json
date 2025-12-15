@@ -1,0 +1,55 @@
+{
+  "num_vortices": 5,
+  "vortices": [
+    {
+      "index": 0,
+      "charge": 1,
+      "amplitude": 0.3,
+      "k": 1.0,
+      "trajectory_type": "fourier",
+      "preset": "circle",
+      "omega": 1.0,
+      "phase_offset": 0.0
+    },
+    {
+      "index": 1,
+      "charge": -1,
+      "amplitude": 0.3,
+      "k": 1.0,
+      "trajectory_type": "fourier",
+      "preset": "star5",
+      "omega": 1.0,
+      "phase_offset": 0.6283185307179586
+    },
+    {
+      "index": 2,
+      "charge": 1,
+      "amplitude": 0.3,
+      "k": 1.0,
+      "trajectory_type": "fourier",
+      "preset": "heart",
+      "omega": 1.0,
+      "phase_offset": 1.2566370614359172
+    },
+    {
+      "index": 3,
+      "charge": -1,
+      "amplitude": 0.3,
+      "k": 1.0,
+      "trajectory_type": "fourier",
+      "preset": "figure8",
+      "omega": 1.0,
+      "phase_offset": 1.8849555921538759
+    },
+    {
+      "index": 4,
+      "charge": 1,
+      "amplitude": 0.3,
+      "k": 1.0,
+      "trajectory_type": "fourier",
+      "preset": "lissajous",
+      "omega": 1.0,
+      "phase_offset": 2.5132741228718345
+    }
+  ]
+}
