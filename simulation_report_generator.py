@@ -546,7 +546,7 @@ class IntegratedReportGenerator:
             analysis: Analysis dict
 
         Returns:
-            Dictionary mapping format → file path
+            Dictionary mapping format -> file path
         """
         # Create report object
         report = SimulationReport(
@@ -566,19 +566,19 @@ class IntegratedReportGenerator:
         print(f"Generating JSON report...")
         json_file = JSONReportGenerator.generate(report, report_dir)
         generated_files['json'] = json_file
-        print(f"  → {json_file}")
+        print(f"  -> {json_file}")
 
         # Generate Markdown
         print(f"Generating Markdown report...")
         md_file = MarkdownReportGenerator.generate(report, report_dir)
         generated_files['markdown'] = md_file
-        print(f"  → {md_file}")
+        print(f"  -> {md_file}")
 
         # Generate LaTeX
         print(f"Generating LaTeX white paper...")
         tex_file = LaTeXWhitePaperGenerator.generate(report, report_dir)
         generated_files['latex'] = tex_file
-        print(f"  → {tex_file}")
+        print(f"  -> {tex_file}")
 
         # Compile PDF
         if self.compile_pdf:
@@ -586,7 +586,7 @@ class IntegratedReportGenerator:
             pdf_file = PDFCompiler.compile(tex_file, report_dir)
             if pdf_file:
                 generated_files['pdf'] = pdf_file
-                print(f"  → {pdf_file}")
+                print(f"  -> {pdf_file}")
             else:
                 print(f"  PDF compilation skipped (pdflatex not available)")
 

@@ -737,7 +737,7 @@ class GWLatticeProbe:
             perturbation_end_idx
         )
         self.results['persistence_metrics']['memory'] = memory_metrics
-        print(f"  Decay time τ: {memory_metrics['decay_time']:.3f} s")
+        print(f"  Decay time tau: {memory_metrics['decay_time']:.3f} s")
         print(f"  Quality factor Q: {memory_metrics['quality_factor']:.2f}")
         print()
 
