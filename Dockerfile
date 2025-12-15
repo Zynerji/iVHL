@@ -126,18 +126,28 @@ RUN mkdir -p \
 # Set permissions
 RUN chmod -R 755 /app
 
+# Expose LLM chat port
+EXPOSE 7860
+
 # Expose Streamlit port
 EXPOSE 8501
 
 # Expose trame visualization port (optional)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+# Download default LLM model during build (so it's ready at runtime)
+RUN python -c "from huggingface_hub import snapshot_download; \
+    snapshot_download('TinyLlama/TinyLlama-1.1B-Chat-v1.0', \
+    cache_dir='/app/.cache/huggingface', \
+    ignore_patterns=['*.msgpack', '*.h5'])" || echo "Model download failed - will download at runtime"
 
-# Set entrypoint to run Streamlit
-ENTRYPOINT ["streamlit", "run"]
+# Health check (check both LLM and Streamlit)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD (curl --fail http://localhost:7860/health || true) && \
+        (curl --fail http://localhost:8501/_stcore/health || true)
 
-# Default command: run main Streamlit app
-CMD ["vhl_resonance_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
+# Set entrypoint to LLM-first startup script
+ENTRYPOINT ["python", "scripts/start_with_llm.py"]
+
+# Default command: start both LLM and simulations
+CMD ["--full", "--llm-port", "7860", "--sim-port", "8501"]

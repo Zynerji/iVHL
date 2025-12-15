@@ -128,8 +128,24 @@ The iVHL framework operates in an **11-dimensional space**:
   - Conclusions and implications
   - References (Maldacena, Ryu-Takayanagi, Pastawski, Oriti, LIGO)
   - Appendices (raw data, reproducibility)
-- **Data Exfiltration**: Timestamped reports in `reports/report_YYYYMMDD_HHMMSS/`
-- **File**: `simulation_report_generator.py`
+- **Data Exfiltration**: Timestamped reports in `whitepapers/report_YYYYMMDD_HHMMSS/`
+- **File**: `ivhl/integration/report_generator.py`
+
+### 7. **NEW: Embedded LLM System** (2025-12-15)
+- **Purpose**: Autonomous AI assistant running on H100 alongside simulations
+- **Models**: TinyLlama (1.1B), Phi-3 (3.8B), Llama-3.2 (3B), Mistral-7B (4-bit)
+- **Key Features**:
+  - Real-time simulation monitoring
+  - Natural language control (modify parameters via chat)
+  - Autonomous white paper generation (using H100, not Claude API)
+  - Interactive chat interface (Gradio)
+  - Function calling to control simulations
+  - Completely offline (no external APIs)
+- **Architecture**: LLM loads FIRST (reserves 10-15% GPU), simulations use remaining 80-85%
+- **Startup**: `python scripts/start_with_llm.py --full`
+- **Ports**: LLM Chat (7860), Simulation Dashboard (8501)
+- **Files**: `ivhl/llm/agent.py`, `dashboards/llm_chat.py`, `scripts/start_with_llm.py`
+- **Documentation**: See `ivhl/llm/README.md` for complete guide
 
 ---
 
