@@ -14,11 +14,11 @@ FROM nvidia/cuda:12.5.0-devel-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
+# Install system dependencies (using Python 3.10 from Ubuntu 22.04)
 RUN apt-get update && apt-get install -y \
-    python3.12 \
+    python3 \
     python3-pip \
-    python3.12-dev \
+    python3-dev \
     git \
     wget \
     curl \
@@ -33,10 +33,6 @@ RUN apt-get update && apt-get install -y \
     texlive-latex-extra \
     texlive-fonts-recommended \
     && rm -rf /var/lib/apt/lists/*
-
-# Set Python 3.12 as default
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
 
 # Upgrade pip
 RUN python3 -m pip install --upgrade pip setuptools wheel
