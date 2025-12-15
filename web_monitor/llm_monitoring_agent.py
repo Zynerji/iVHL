@@ -89,17 +89,23 @@ Remember: You are a tool for understanding computational patterns in abstract ma
 class LLMMonitoringAgent:
     """
     Monitors simulation and provides real-time LLM commentary.
+
+    SPOF #3 Fix: Supports offline fallback mode when vLLM unavailable.
     """
 
     def __init__(
         self,
         vllm_url: str = "http://localhost:8000/v1/chat/completions",
-        model_name: str = "Qwen/Qwen2.5-2B-Instruct"
+        model_name: str = "Qwen/Qwen2.5-2B-Instruct",
+        enable_fallback: bool = True
     ):
         self.vllm_url = vllm_url
         self.model_name = model_name
         self.conversation_history = []
         self.notes = []
+        self.enable_fallback = enable_fallback
+        self.offline_mode = False
+        self.llm_available = False
 
         # Initialize with system prompt
         self.conversation_history.append({
@@ -107,9 +113,58 @@ class LLMMonitoringAgent:
             "content": SYSTEM_PROMPT
         })
 
-        print(f"LLM Monitoring Agent initialized:")
+        print(f"LLM Monitoring Agent initializing...")
         print(f"  - Model: {model_name}")
         print(f"  - Endpoint: {vllm_url}")
+
+        # Test LLM availability
+        self._check_llm_availability()
+
+    def _check_llm_availability(self) -> bool:
+        """Check if LLM server is reachable."""
+        try:
+            response = requests.get(
+                self.vllm_url.replace('/v1/chat/completions', '/v1/models'),
+                timeout=5
+            )
+            self.llm_available = response.status_code == 200
+
+            if self.llm_available:
+                print(f"  ✅ LLM server online")
+            else:
+                print(f"  ⚠️  LLM server unreachable (status {response.status_code})")
+
+        except Exception as e:
+            self.llm_available = False
+            print(f"  ⚠️  LLM server not available: {e}")
+
+        if not self.llm_available and self.enable_fallback:
+            self.offline_mode = True
+            print(f"  📴 Entering OFFLINE MODE (rule-based analysis)")
+
+        return self.llm_available
+
+    def _offline_analysis(self, user_message: str) -> str:
+        """
+        Fallback: Rule-based analysis when LLM unavailable.
+
+        Provides basic metric interpretation without LLM.
+        """
+        # Extract metrics from message if present
+        if "Analyze step" in user_message:
+            # Parse simple patterns
+            if "Entropies:" in user_message:
+                return "NOTE: Monitoring entropy values (LLM offline - rule-based analysis active)"
+            if "Correlations:" in user_message:
+                return "OK"
+
+        # Answer common questions with canned responses
+        elif "why" in user_message.lower():
+            return "LLM offline: Unable to provide detailed analysis. Check metrics manually."
+        elif "what" in user_message.lower():
+            return "LLM offline: Simulation running in automated mode. Metrics being logged."
+        else:
+            return "LLM offline: Limited analysis available. Core simulation continues normally."
 
     def query_llm(
         self,
@@ -117,12 +172,21 @@ class LLMMonitoringAgent:
         max_tokens: int = 256,
         temperature: float = 0.7
     ) -> str:
-        """Send query to vLLM server."""
+        """Send query to vLLM server, with offline fallback."""
         # Add user message to history
         self.conversation_history.append({
             "role": "user",
             "content": user_message
         })
+
+        # Use fallback if in offline mode
+        if self.offline_mode:
+            assistant_message = self._offline_analysis(user_message)
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": assistant_message
+            })
+            return assistant_message
 
         # Call vLLM API
         try:
@@ -149,10 +213,26 @@ class LLMMonitoringAgent:
 
                 return assistant_message
             else:
-                return f"Error: vLLM returned status {response.status_code}"
+                error_msg = f"Error: vLLM returned status {response.status_code}"
+
+                # Fall back to offline mode on error
+                if self.enable_fallback:
+                    print(f"⚠️  LLM error, switching to offline mode")
+                    self.offline_mode = True
+                    return self._offline_analysis(user_message)
+
+                return error_msg
 
         except requests.exceptions.RequestException as e:
-            return f"Error connecting to vLLM: {e}"
+            error_msg = f"Error connecting to vLLM: {e}"
+
+            # Fall back to offline mode on connection error
+            if self.enable_fallback and not self.offline_mode:
+                print(f"⚠️  LLM connection failed, switching to offline mode")
+                self.offline_mode = True
+                return self._offline_analysis(user_message)
+
+            return error_msg
 
     def analyze_step(self, metrics: Dict) -> Optional[Dict]:
         """
@@ -213,6 +293,56 @@ Be brief!"""
 
         return self.query_llm(full_prompt, max_tokens=512)
 
+    def _generate_offline_whitepaper_section(self, section: str, data: Dict) -> str:
+        """
+        Fallback: Generate basic whitepaper section without LLM.
+
+        Returns template-based LaTeX content.
+        """
+        if section == "abstract":
+            return f"""\\begin{{abstract}}
+This computational study explores hierarchical information dynamics in multi-layer tensor networks.
+The simulation tracked von Neumann entropy and correlation patterns across {data.get('num_layers', 'N')} layers
+over {data.get('timesteps', 'N')} timesteps. Key observations include entropy redistribution and
+correlation structure emergence. This work represents an abstract mathematical exploration with no
+direct physical interpretation.
+
+\\textit{{Note: Generated automatically (LLM unavailable).}}
+\\end{{abstract}}"""
+
+        elif section == "results":
+            return f"""\\section{{Results}}
+
+\\subsection{{Simulation Overview}}
+The simulation consisted of {data.get('num_layers', 'N')} hierarchical layers with
+base dimension {data.get('base_dim', 'N')} and bond dimension {data.get('bond_dim', 'N')}.
+The system evolved over {data.get('timesteps', 'N')} timesteps.
+
+\\subsection{{Entropy Evolution}}
+Von Neumann entropy was tracked across all layers. Detailed metrics available in output logs.
+
+\\subsection{{Correlation Patterns}}
+Inter-layer correlations were monitored throughout the simulation run.
+
+\\textit{{Note: Detailed analysis unavailable (LLM offline). See metrics JSON for raw data.}}
+"""
+
+        elif section == "discussion":
+            return f"""\\section{{Discussion}}
+
+This computational experiment explored information flow through hierarchical tensor compression.
+The observed patterns reflect mathematical properties of the tensor network architecture and
+compression strategy employed.
+
+Future work could explore alternative compression schemes, different layer configurations, and
+extended simulation durations.
+
+\\textit{{Note: Generated automatically (LLM unavailable).}}
+"""
+
+        else:
+            return f"\\section{{{section.title()}}}\\n\\nSection content unavailable (LLM offline).\\n"
+
     def generate_whitepaper_section(self, section: str, data: Dict) -> str:
         """
         Generate a section of the whitepaper.
@@ -224,6 +354,10 @@ Be brief!"""
         Returns:
             LaTeX formatted text
         """
+        # Use offline fallback if LLM unavailable
+        if self.offline_mode:
+            return self._generate_offline_whitepaper_section(section, data)
+
         if section == "abstract":
             prompt = f"""Generate a scientific abstract (1 paragraph, ~150 words) for this computational study.
 
@@ -273,6 +407,10 @@ Start with: \\section{{Discussion}}"""
             prompt = f"Generate {section} section for whitepaper using data: {data}"
 
         response = self.query_llm(prompt, max_tokens=1024, temperature=0.7)
+
+        # If response indicates error, fall back to offline generation
+        if response.startswith("Error") or response.startswith("LLM offline"):
+            return self._generate_offline_whitepaper_section(section, data)
 
         return response
 
