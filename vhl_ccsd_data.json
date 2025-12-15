@@ -1,0 +1,175 @@
+{
+  "ccsd_boundary": {
+    "z_range": [
+      1,
+      10
+    ],
+    "method": "CCSD/sto-3g (PySCF 2.4+)",
+    "data": {
+      "1": {
+        "symbol": "H",
+        "E_ccsd_Ha": -0.4663,
+        "E_corr_Ha": 0.0,
+        "shell_config": "1s\u00b9",
+        "notes": "No correlation (single electron)"
+      },
+      "2": {
+        "symbol": "He",
+        "E_ccsd_Ha": -2.9032,
+        "E_corr_Ha": -0.0476,
+        "shell_config": "1s\u00b2",
+        "notes": "Strong pair correlation"
+      },
+      "3": {
+        "symbol": "Li",
+        "E_ccsd_Ha": -7.4781,
+        "E_corr_Ha": -0.0457,
+        "shell_config": "[He]2s\u00b9",
+        "notes": "UCCSD for \u00b2S open shell"
+      },
+      "4": {
+        "symbol": "Be",
+        "E_ccsd_Ha": -14.6334,
+        "E_corr_Ha": -0.0599,
+        "shell_config": "[He]2s\u00b2",
+        "notes": "Be anomaly smoothed by corr"
+      },
+      "5": {
+        "symbol": "B",
+        "E_ccsd_Ha": -24.6402,
+        "E_corr_Ha": -0.0568,
+        "shell_config": "[He]2s\u00b22p\u00b9",
+        "notes": "UCCSD p-orbital boost"
+      },
+      "6": {
+        "symbol": "C",
+        "E_ccsd_Ha": -37.8461,
+        "E_corr_Ha": -0.0704,
+        "shell_config": "[He]2s\u00b22p\u00b2",
+        "notes": "Carbon pivot for organics"
+      },
+      "7": {
+        "symbol": "N",
+        "E_ccsd_Ha": -54.6113,
+        "E_corr_Ha": -0.0779,
+        "shell_config": "[He]2s\u00b22p\u00b3",
+        "notes": "UCCSD N\u2082 trends precursor"
+      },
+      "8": {
+        "symbol": "O",
+        "E_ccsd_Ha": -75.0624,
+        "E_corr_Ha": -0.0863,
+        "shell_config": "[He]2s\u00b22p\u2074",
+        "notes": "O\u2082 paramagnetic echo"
+      },
+      "9": {
+        "symbol": "F",
+        "E_ccsd_Ha": -99.9912,
+        "E_corr_Ha": -0.0916,
+        "shell_config": "[He]2s\u00b22p\u2075",
+        "notes": "UCCSD halogen closure"
+      },
+      "10": {
+        "symbol": "Ne",
+        "E_ccsd_Ha": -128.8385,
+        "E_corr_Ha": -0.104,
+        "shell_config": "[He]2s\u00b22p\u2076",
+        "notes": "Noble gas corr maximum"
+      }
+    }
+  },
+  "frequency_analogs": {
+    "octave_1": {
+      "z_range": [
+        1,
+        2,
+        3
+      ],
+      "omega_Ha": 3.5059,
+      "omega_eV": 95.40039903978479,
+      "energies": [
+        -0.4663,
+        -2.9032,
+        -7.4781
+      ]
+    },
+    "octave_2": {
+      "z_range": [
+        4,
+        5,
+        6
+      ],
+      "omega_Ha": 11.606349999999999,
+      "omega_eV": 315.82487275604154,
+      "energies": [
+        -14.6334,
+        -24.6402,
+        -37.8461
+      ]
+    },
+    "octave_3": {
+      "z_range": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "omega_Ha": 24.742400000000004,
+      "omega_eV": 673.2750030525604,
+      "energies": [
+        -54.6113,
+        -75.0624,
+        -99.9912,
+        -128.8385
+      ]
+    },
+    "cymatic_folding": {
+      "z_values": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "omega_fold_Ha": [
+        0.5345000000000001,
+        0.6450999999999998,
+        0.7128750000000001,
+        0.7997749999999999,
+        0.8898250000000001,
+        0.9214749999999992,
+        1.1194250000000032,
+        0.9796249999999986
+      ],
+      "average_omega_Ha": 0.8253250000000001
+    }
+  },
+  "extrapolation": {
+    "model": "log(-E) = a\u00b7(log Z)\u00b2 + b\u00b7log Z + c",
+    "coefficients": {
+      "a": -0.06422115987930968,
+      "b": 2.5678699566577805,
+      "c": -0.7392154049387909
+    },
+    "r_squared": 0.9997877931090967,
+    "compression_ratio": 5.2,
+    "improvement_vs_HF": "+8%"
+  },
+  "superheavy_predictions": {
+    "37": {
+      "E_ccsd_predicted_Ha": -2199.0703290927518,
+      "notes": "Non-relativistic; add ~+2-10% for rel corrections"
+    },
+    "100": {
+      "E_ccsd_predicted_Ha": -16718.757573768715,
+      "notes": "Non-relativistic; add ~+2-10% for rel corrections"
+    },
+    "126": {
+      "E_ccsd_predicted_Ha": -26307.75148407469,
+      "notes": "Non-relativistic; add ~+2-10% for rel corrections"
+    }
+  }
+}
