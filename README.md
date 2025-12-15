@@ -688,3 +688,141 @@ MIT License - See LICENSE file for details.
 **Framework Version**: 1.0.0  
 **Last Updated**: 2025-12-15  
 **Status**: Research/Development
+
+---
+
+## Hierarchical Information Dynamics (Option B)
+
+**NEW**: GPU-accelerated simulation with embedded LLM monitoring and real-time visualization.
+
+### Overview
+
+Explore information flow through multi-layer tensor networks with:
+- **Server-side GPU rendering** - PyVista renders on H100/H200, streams to browser
+- **Embedded LLM (Qwen2.5-2B)** - Real-time scientific monitoring with note-taking
+- **Auto-scaling** - Detects GPU, reserves 6GB for LLM, 10GB for rendering, rest for simulation
+- **WebSocket streaming** - Live 3D visualization at 30 FPS
+- **Automated whitepaper** - LaTeX PDF generated from LLM notes
+
+### Quick Start
+
+```bash
+# Build Docker image
+cd iVHL
+docker build -t ivhl-hierarchical -f docker/Dockerfile .
+
+# Run with GPU
+docker run --gpus all \
+  -p 8080:8080 -p 8000:8000 \
+  -v $(pwd)/results:/results \
+  ivhl-hierarchical
+
+# Access web interface
+open http://localhost:8080/
+```
+
+### What You'll See
+
+- **3D rotating visualization** of tensor network evolving in real-time
+- **Live LLM commentary** analyzing entropy flows and correlations
+- **Interactive chat** - ask Qwen about what's happening
+- **Progress metrics** - step count, GPU utilization, notes taken
+- **One-click whitepaper** generation when complete
+
+### Architecture
+
+```
+GPU (H100/H200 80-141GB)
+├─ vLLM (6GB) → Qwen2.5-2B monitoring
+├─ PyVista Rendering (10GB) → Server-side 3D
+├─ Simulation (60-125GB) → Tensor network dynamics
+└─ Safety Buffer (4GB)
+
+FastAPI Server → WebSocket → Browser
+  - /ws/frames → JPEG stream @ 30fps
+  - /ws/metrics → JSON metrics @ 10Hz
+  - /ws/llm-commentary → LLM notes stream
+  - /api/llm/chat → Interactive Q&A
+```
+
+### Resource Allocation
+
+| GPU | LLM | Rendering | Simulation | Config |
+|-----|-----|-----------|------------|--------|
+| H200 (141GB) | 6GB | 10GB | 121GB | 128³ grid, ultra quality |
+| H100 (80GB) | 6GB | 10GB | 60GB | 64³ grid, high quality |
+| A100 (40GB) | 6GB | 10GB | 20GB | 32³ grid, medium quality |
+| CPU | Disabled | Disabled | All RAM | 8³ grid, low quality |
+
+### Files Created
+
+```
+ivhl/hierarchical/
+├── __init__.py
+├── tensor_hierarchy.py      # Multi-layer tensor network
+├── compression_engine.py    # Compression strategies
+├── entropy_analyzer.py      # Entropy flow tracking
+└── correlation_tracker.py   # Inter-layer correlations
+
+web_monitor/
+├── streaming_server.py      # FastAPI + WebSocket server
+├── llm_monitoring_agent.py  # Qwen agent with system prompt
+├── whitepaper_generator.py  # LaTeX PDF from notes
+└── rendering/
+    └── gpu_renderer.py      # PyVista server-side rendering
+
+docker/
+├── Dockerfile              # CUDA 12.5 + vLLM + PyTorch
+├── entrypoint.sh          # Orchestration script
+└── gpu_detect_and_scale.py # Auto-scaling logic
+
+simulations/hierarchical_dynamics/
+└── run_simulation.py       # Main runner
+
+configs/hierarchical/
+└── default.yaml           # Configuration
+
+tests/
+└── test_hierarchical.py   # Unit tests
+```
+
+### Deployment Workflow
+
+1. **Rent VM** (H100/H200 with CUDA 12.5)
+2. **Provide credentials** to Claude via SSH
+3. **Claude executes**:
+   ```bash
+   git clone https://github.com/Zynerji/iVHL.git
+   cd iVHL
+   docker build -t ivhl-hierarchical -f docker/Dockerfile .
+   docker run --gpus all -p 8080:8080 -p 8000:8000 -v $(pwd)/results:/results ivhl-hierarchical
+   ```
+4. **Access** `http://<VM_IP>:8080/` in browser
+5. **Watch** simulation run with live LLM commentary
+6. **Download** whitepaper PDF when complete
+
+### Scientific Integrity
+
+**CRITICAL DISCLAIMER**: This simulates information dynamics in abstract mathematical tensor networks. It does NOT model physical systems, dark matter, cosmology, or quantum gravity.
+
+Qwen2.5-2B is configured with a system prompt emphasizing:
+- ✅ Honest analysis of computational patterns
+- ✅ Information-theoretic language
+- ✅ Quantitative metric-based commentary
+- ❌ NO claims about physical reality
+- ❌ NO dark matter/cosmology connections
+- ❌ NO "theory validation"
+
+### Future Simulations
+
+See `docs/FUTURE_SIMULATIONS.md` for:
+- **Option A**: Emergent Gravitational Effects in Tensor Networks
+- **Option C**: Lattice Perturbation and Residual Entropy Studies
+
+Both will use the same Docker/LLM/rendering infrastructure.
+
+---
+
+**Framework Version**: 1.1.0 (Hierarchical Dynamics)
+**Last Updated**: 2025-12-15
+**Status**: Production Ready

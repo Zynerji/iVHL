@@ -1,0 +1,16 @@
+# Hierarchical Information Dynamics Configuration
+hierarchy:
+  num_layers: 5
+  base_dimension: 64
+  bond_dimension: 16
+  device: cuda
+
+simulation:
+  timesteps: 500
+
+rendering:
+  resolution: [1920, 1080]
+  quality: 85
+
+llm:
+  model: Qwen/Qwen2.5-2B-Instruct
