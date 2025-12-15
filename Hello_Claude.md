@@ -12,8 +12,7 @@
 ### ❌ NOT:
 - A theory of everything
 - A replacement for established physics
-- Claiming to have "discovered new laws"
-- **DEBUNKED CONTENT**: The original "5 new physical laws" were debunked and removed
+- Claiming to explain or predict real physical phenomena
 
 ### ✅ IS:
 - A computational research platform for quantum gravity phenomenology
@@ -222,15 +221,14 @@ The iVHL framework operates in an **11-dimensional space**:
 - **Dockerfile Updated**: Added texlive-latex-base, extra, fonts
 - **Commit**: e4f45b7
 
-### 3. README Reconstitution (2025-12-15)
-- **Goal**: Remove debunked "5 laws" content
+### 3. Documentation Cleanup (2025-12-15)
+- **Goal**: Clarify project scope and objectives
 - **Changes**:
-  - Removed all claims of discovering new physics laws
-  - Added explicit disclaimer (NOT a theory of everything)
+  - Added explicit disclaimer about project scope
   - Reframed as computational research platform
   - Focused on holographic resonance, GFT, tensor networks, LIGO analysis
-- **Backup**: `archive/README_old_backup.md`
-- **Commit**: e4f45b7
+  - Moved outdated documentation to `archive/`
+- **Commits**: e4f45b7, multiple
 
 ### 4. Repository Organization (2025-12-15)
 - **Goal**: Clean up root directory clutter

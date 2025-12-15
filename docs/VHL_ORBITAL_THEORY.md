@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document explains how **atomic orbital structure propagates through the Vibrational Helix Lattice**, revealing deep connections between quantum mechanics, Walter Russell's octave cosmology, and cymatic patterns.
+This document explains how **atomic orbital structure propagates through the Vibrational Helix Lattice** simulation framework, exploring connections between quantum mechanics and geometric patterns.
 
 ---
 
@@ -79,19 +79,19 @@ polarity = sign(valence_configuration) * angular_momentum_factor
 - **Halogens** (p⁵ valence): -1 (contraction, cold, inward)
 - **Noble gases** (p⁶ or s²): 0 (equilibrium, stillness)
 
-### 4. Shell Filling → Octave Completion
+### 4. Shell Filling → Periodic Structure
 
-**Russell's 9-Tone Octave Structure:**
+**Periodic Shell Pattern:**
 
-| Tone | Element Example | Shell State | Polarity | VHL Meaning |
+| Position | Element Example | Shell State | Polarity | VHL Meaning |
 |------|----------------|-------------|----------|-------------|
-| 1 | H (Octave 1), Li (Oct 2) | New shell begins | + | Expansion point |
-| 2 | He (Oct 1), Be (Oct 2) | Partial fill | 0/+ | Building |
+| 1 | H (Period 1), Li (Period 2) | New shell begins | + | Expansion point |
+| 2 | He (Period 1), Be (Period 2) | Partial fill | 0/+ | Building |
 | 3-4 | B, C | p-shell starts | 0 | Carbon equilibrium |
 | 5-7 | N, O, F | p-shell filling | - | Contraction |
-| 8-9 | Ne | Shell complete | 0 | Stillness point |
+| 8-9 | Ne | Shell complete | 0 | Equilibrium point |
 
-**Noble gases** (He, Ne, Ar, Kr, Xe, Rn, Og) mark **octave boundaries** = complete shells = maximum nodal structure = stillness points in Russell's cosmology.
+**Noble gases** (He, Ne, Ar, Kr, Xe, Rn, Og) mark **period boundaries** = complete shells = maximum nodal structure = stability points.
 
 ---
 
@@ -249,7 +249,7 @@ python vhl_orbital_propagation.py --octave 2 --export both
 - Panel 2: Nodal count vs. Z (scatter, color = octave)
 - Panel 3: Energy vs. Z (ionization trend)
 - Panel 4: 3D VHL positions (color = nodes)
-- Panel 5: Octave distribution (Russell's 9-tone)
+- Panel 5: Periodic distribution
 - Panel 6: Peak density vs. Z (log scale)
 
 ---
@@ -367,10 +367,9 @@ Compare to experimental photoemission spectra (ionization thresholds).
 3. **Ca Isotope Anomaly** - ETH Zurich 2025 (speculative, fifth-force hints)
 
 ### Theoretical
-4. **Russell (1926)** - The Universal One, octave cosmology
-5. **Chladni (1787)** - Acoustic cymatic patterns
-6. **Maldacena (1999)** - AdS-CFT correspondence, holographic principle
-7. **Axilrod-Teller-Muto (1943)** - Three-body dispersion forces
+4. **Chladni (1787)** - Acoustic cymatic patterns
+5. **Maldacena (1999)** - AdS-CFT correspondence, holographic principle
+6. **Axilrod-Teller-Muto (1943)** - Three-body dispersion forces
 
 ### Computational
 8. **PySCF** - Python-based Simulations of Chemistry Framework
@@ -438,10 +437,7 @@ This is not just a pretty visualization—it's a **predictive framework** for:
 - Relativistic effects at high Z
 - Quantum-classical correspondence (Ehrenfest theorem)
 
-**In Walter Russell's words:**
-> "The universe is a cosmic symphony where each element plays its note in the grand octave of creation."
-
-The VHL makes this metaphor **mathematically precise** and **experimentally testable**.
+The iVHL framework provides a computational platform for exploring geometric patterns in atomic structure.
 
 ---
 

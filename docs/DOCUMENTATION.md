@@ -10,12 +10,12 @@
 
 ## Overview
 
-The VHL Simulation is a computational framework that reimagines the periodic table as a 3D helical structure, integrating:
-- **Walter Russell's 1926 octave-spiral cosmology**: Elements emerge as resonant nodes in polarized waves
+The VHL Simulation is a computational framework exploring periodic patterns through a 3D helical geometric structure, integrating:
+- **Geometric patterns**: Elements represented as nodes in a helical lattice
 - **Cymatics**: Vibrational geometries mirroring Chladni patterns and spherical harmonics
 - **Quantum Mechanics**: Hartree-Fock calculations via PySCF for ground-state energies
 - **Holographic Principles**: AdS-CFT inspired gap reconstruction for missing data
-- **Speculative Fifth Force**: Yukawa potential from polarity mismatches
+- **Force modeling**: Yukawa potential interactions
 
 ## Theoretical Foundation
 
@@ -343,11 +343,11 @@ Replace Streamlit with WebGL (Three.js) for 60fps rendering.
 - Compare FFT peaks to Raman spectra of elemental crystals
 - Correlate fifth-force range with Ca isotope data (ETH 2025)
 
-### 7. Extended Octave Theory
-Implement Russell's full tonal mapping:
+### 7. Extended Periodic Structure Analysis
+Explore periodic patterns in the helical geometry:
 ```
-Octave 1: H, He
-Octave 2: Li, Be, B, C, N, O, F, Ne
+Period 1: H, He
+Period 2: Li, Be, B, C, N, O, F, Ne
 ...
 ```
 
@@ -359,11 +359,10 @@ jupyter notebook vhl_tutorial.ipynb
 
 ## References
 
-1. Russell, W. (1926). *The Universal One*. University of Science and Philosophy.
-2. Maldacena, J. (1999). *The Large N Limit of Superconformal Field Theories*. arXiv:hep-th/9711200.
-3. Ryu, S., Takayanagi, T. (2006). *Holographic Derivation of Entanglement Entropy*. Phys. Rev. Lett.
-4. PySCF Documentation: https://pyscf.org
-5. ETH Zurich (2025). *Anomalous Charge Radii in Calcium Isotopes* (speculative ref).
+1. Maldacena, J. (1999). *The Large N Limit of Superconformal Field Theories*. arXiv:hep-th/9711200.
+2. Ryu, S., Takayanagi, T. (2006). *Holographic Derivation of Entanglement Entropy*. Phys. Rev. Lett.
+3. PySCF Documentation: https://pyscf.org
+4. ETH Zurich (2025). *Anomalous Charge Radii in Calcium Isotopes* (speculative ref).
 
 ## License
 

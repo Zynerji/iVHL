@@ -606,7 +606,6 @@ vtk += `POINTS ${N_NODES} float\n`;
 - [Models & Layers API](https://js.tensorflow.org/api/latest/)
 
 ### Physics
-- Walter Russell (1926). *The Universal One*
 - Yukawa, H. (1935). *On the Interaction of Elementary Particles*
 - Axilrod, B.M., Teller, E. (1943). *Interaction of Three Atoms*
 
