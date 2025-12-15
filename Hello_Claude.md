@@ -534,3 +534,66 @@ When you (Claude) reconnect to this project:
 5. Proceed with confidence knowing the full context
 
 Good luck! 🚀
+
+---
+
+## 🚨 PENDING: Multi-User Improvements for Hierarchical Dynamics
+
+**Status**: Shipped as single-user (Option B)  
+**Action Required**: After first successful VM test, ask user about implementing Option A
+
+### Background
+
+The Hierarchical Information Dynamics framework (commit f3b64e6) currently supports multiple simultaneous viewers, but has these limitations:
+
+1. **Shared LLM Chat**: All users share one conversation context (causes confusion)
+2. **Control Conflicts**: Anyone can pause/resume simulation (causes interruptions)
+3. **No Role Awareness**: Users don't know who else is watching or controlling
+
+### Option A Improvements (Not Yet Implemented)
+
+**High Priority Fixes:**
+- ✅ **Viewer Roles**: First connection = ADMIN (can control), others = VIEWER (watch only)
+- ✅ **Isolated Chat Sessions**: Each user gets private conversation with Qwen2.5-2B
+- ✅ **Read-Only Controls**: Only ADMIN can pause/resume/generate whitepaper
+
+**Implementation Time**: 1-2 hours
+
+**Files to Modify**:
+- `web_monitor/session_manager.py` (NEW) - Session/role management
+- `web_monitor/streaming_server.py` - Add session checks
+- `web_monitor/llm_monitoring_agent.py` - Support per-session conversations
+- Update HTML UI to show role and disable controls for viewers
+
+### When to Ask
+
+**After first successful test on VM**, ask the user:
+
+> "The simulation ran successfully! I noticed [X] users connected during the test.
+> 
+> Currently, all viewers share controls and LLM chat. Would you like me to implement
+> **Option A** multi-user improvements? This adds:
+> - Role-based access (one ADMIN, others are view-only)  
+> - Private chat sessions (each user gets their own LLM conversation)
+> - Control locking (only ADMIN can pause/resume)
+> 
+> Implementation time: ~1-2 hours. Should I proceed?"
+
+### Current Workaround
+
+For now, if multiple users connect:
+- Share the link only with trusted collaborators
+- Coordinate over voice/chat who controls the simulation
+- Treat LLM chat as public (everyone sees responses)
+
+### Performance Note
+
+Multiple viewers are **NOT a problem** for performance:
+- GPU renders once, WebSocket broadcasts to all (minimal overhead)
+- 10 viewers ≈ 100 Mbps network, 5-10% extra CPU
+- Bottleneck is network bandwidth, not GPU/CPU
+
+---
+
+**Date Added**: 2025-12-15  
+**Relevant Commit**: f3b64e6 (Hierarchical Information Dynamics)
