@@ -826,3 +826,23 @@ Both will use the same Docker/LLM/rendering infrastructure.
 **Framework Version**: 1.1.0 (Hierarchical Dynamics)
 **Last Updated**: 2025-12-15
 **Status**: Production Ready
+
+### 🚀 Pre-Built Docker Image (Recommended)
+
+**Skip the 20-30 minute build!** Use the pre-built image from GitHub Container Registry:
+
+```bash
+# Pull pre-built image (~15 GB, includes Qwen2.5-2B)
+docker pull ghcr.io/zynerji/ivhl:hierarchical
+
+# Run immediately
+docker run --gpus all \
+  -p 8080:8080 -p 8000:8000 \
+  -v $(pwd)/results:/results \
+  ghcr.io/zynerji/ivhl:hierarchical
+
+# Access: http://localhost:8080/
+```
+
+**Image auto-builds** on every commit to main branch. See `docker/README.md` for details.
+
