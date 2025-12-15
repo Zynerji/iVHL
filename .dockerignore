@@ -1,0 +1,78 @@
+# iVHL Docker Ignore File
+# Excludes unnecessary files from Docker build context
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Logs and databases
+*.log
+logs/
+*.sqlite3
+*.db
+
+# Checkpoints (will be mounted as volume)
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Data (will be mounted as volume)
+data/
+datasets/
+*.npy
+*.npz
+*.h5
+*.hdf5
+
+# Results and exports
+results/
+exports/
+output/
+
+# Documentation (not needed in container)
+*.md
+docs/
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# Jupyter notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (don't copy into image)
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Large binary files
+*.tar.gz
+*.zip
+*.rar
