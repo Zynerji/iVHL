@@ -7,3 +7,9 @@ plotly>=5.17.0
 pandas>=2.0.0
 flask>=3.0.0
 flask-cors>=4.0.0
+
+# Holographic Resonance Extensions
+pyvista>=0.43.0
+torch>=2.0.0
+scikit-image>=0.22.0
+tqdm>=4.66.0
