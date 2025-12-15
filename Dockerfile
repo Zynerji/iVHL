@@ -101,6 +101,14 @@ RUN pip install --no-cache-dir \
     gym==0.26.2 \
     stable-baselines3==2.2.1
 
+# Install LaTeX for automated PDF report generation
+RUN apt-get update && apt-get install -y \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create working directory
 WORKDIR /app
 
