@@ -246,11 +246,33 @@ The iVHL framework operates in an **11-dimensional space**:
 **Last Tested**: 2025-12-15
 **Hardware**: NVIDIA H200 (139.8 GB VRAM), Ubuntu 22.04, Python 3.12.3
 
+### Current H200 VM Connection (UPDATED: 2025-12-15)
+
+**CRITICAL: Always check here after conversation compaction for latest connection info**
+
+```yaml
+# VM Configuration
+Username: ivhl
+SSH Key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHjxrDQgRokCaoGxJcVFI4jtOiJVgGBJDJQST5PrXnXR
+Jupyter Token: myBn0JMX7uIuMraq
+Sudo Access: ALL=(ALL) NOPASSWD:ALL
+VM Provider: Nebius
+Last Known IP: 89.169.111.28 (check ~/.ssh/known_hosts for current IP)
+
+# Connection Command
+ssh ivhl@<VM_IP>
+
+# Jupyter Access
+http://<VM_IP>:8888/?token=myBn0JMX7uIuMraq
+```
+
+**Finding Current IP**: Check `~/.ssh/known_hosts` for most recent connection IP.
+
 ### Prerequisites
 
-1. **SSH Access**: Private key file (not public key!)
-2. **GPU VM**: H100/H200 with CUDA support
-3. **Network Access**: Ports 8080 (web server), 8000 (vLLM) open
+1. **SSH Access**: Public key already configured on VM
+2. **GPU VM**: H200 with CUDA support
+3. **Network Access**: Ports 8080 (web server), 8000 (vLLM), 8888 (Jupyter) open
 
 ### Step-by-Step Deployment
 
@@ -912,5 +934,99 @@ Multiple viewers are **NOT a problem** for performance:
 
 ---
 
-**Date Added**: 2025-12-15  
+**Date Added**: 2025-12-15
 **Relevant Commit**: f3b64e6 (Hierarchical Information Dynamics)
+
+---
+
+## 🔬 LATEST: Holographic RNN Training on H200 (2025-12-15)
+
+**Location**: `C:\Users\cknop\.local\bin\` (local development folder, NOT in iVHL repo)
+**Status**: RNN structural parameter control implementation COMPLETE, ready for H200 deployment
+
+### Background
+
+Developed holographic resonance discovery framework using RNN-RL agent to explore vortex formation and holographic encoding. Scaled from 1K → 50K → 1M nodes to study scale-dependent phenomena.
+
+### Key Files
+
+1. **holographic_50k_training.py** (✅ COMPLETED)
+   - 50,000 nodes, 5,000 cycles
+   - 4-layer LSTM (512 hidden)
+   - Results: 4 emergent patterns, 25,991x RNN value growth
+   - Discovered scale-dependent topology: vortex density ρ(N) ∝ N^α
+
+2. **holographic_1M_vram_saturator.py** (✅ READY FOR DEPLOYMENT)
+   - 1,000,000 nodes, 10,000 cycles
+   - 8-layer LSTM (2048 hidden) - mega architecture
+   - **NEW**: RNN autonomous control of iVHL structural parameters (ω, L, n)
+   - Target: ~130GB VRAM saturation on H200
+   - Dense sampling: 2000 nodes per cycle
+
+### Latest Implementation: Structural Parameter Control
+
+**User Request**: "allow the RNN to control these values to also determine the best combinations"
+- ω (omega): Wave frequencies (64 control points, range [0.5, 2.5] Hz)
+- L (layers): Hierarchical layers/turns (32 parameters)
+- n (sampling): Adaptive sampling density (16 controls)
+
+**Implementation Details**:
+- Three auxiliary neural network heads: `w_head`, `L_head`, `n_head`
+- Heads trained end-to-end with actor-critic (single optimizer)
+- Smooth parameter updates: `freq_new = 0.95×freq_old + 0.05×RNN_output`
+- Adaptive sampling: adjusts between 500-5000 nodes based on RNN discovery
+- Convergence tracking: detects when ω stabilizes (σ < 0.05)
+- Exploration bonus: 0.1×σ(ω) reward for parameter diversity
+
+**Expected Discoveries**:
+- Optimal resonance frequency at million-node scale
+- Scale-dependent parameter tuning
+- Emergent holographic encoding strategies
+
+### Next Steps (PENDING VM RESET)
+
+1. Wait for user to provide new H200 IP after VM reset
+2. Check `~/.ssh/known_hosts` for connection
+3. Upload `holographic_1M_vram_saturator.py` to H200
+4. Install PyTorch in proper environment (Docker/Jupyter container)
+5. Launch 1M node training
+6. Monitor for:
+   - VRAM usage (~130GB target)
+   - Parameter convergence (ω stabilization)
+   - New emergent patterns at mega-scale
+   - Structural parameter discoveries
+7. Download whitepaper and results to local repo
+
+### Checkpoint Files
+
+- `~/results/holographic_checkpoints/agent_50k.pt` - 50K training checkpoint
+- `~/results/holographic_checkpoints/agent_1M.pt` - 1M checkpoint (to be created)
+
+### Video Generation (STILL PENDING)
+
+User requested: "MP4 videos of notable events should be created with ffmpeg on the h100 and saved to a new Videos file in the local repo"
+
+**Not yet implemented** - needs post-processing pipeline with ffmpeg.
+
+---
+
+**Last Updated**: 2025-12-16 05:45 UTC
+**Status**: 500-cycle checkpoint run IN PROGRESS on H200 (Cycle 100/500 complete)
+**Findings Report**: `HOLOGRAPHIC_RNN_FINDINGS.md` (committed to main branch)
+
+### Live Training Status (2025-12-16)
+
+**Configuration**:
+- 20M nodes (20× scale increase)
+- 500 cycles (checkpoint run)
+- GPU-optimized batched evolution
+- VRAM: 50GB peak / 140GB available
+- Speed: 0.11 cycles/sec (~40min ETA for completion)
+
+**Key Discovery (Cycle 100)**:
+- **w windings**: 3.8 → 108.47 (28.5× exploration!)
+- **L QEC layers**: 7 → 9.8 (near maximum)
+- **n parameter**: 2.0 → 4.96 (increased sampling)
+- **Vortex density**: 95.19% (19M vortices at 20M scale)
+
+The RNN is autonomously discovering that ultra-high winding configurations (w~108) maintain high vortex density at mega-scale, contradicting the power-law collapse observed at 50K nodes.
