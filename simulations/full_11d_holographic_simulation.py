@@ -572,8 +572,15 @@ class Full11DHolographicSimulation:
         field_3d = field_3d.reshape(grid_size, grid_size, grid_size)
         field_3d_tensor = torch.from_numpy(field_3d).float()
 
-        # Box counting
-        fractal_config = FractalAnalysisConfig()
+        # Box counting with adaptive box sizes for small fields
+        max_box_size = min(grid_size // 2, 8)  # Don't exceed half the grid size
+        min_box_size = 2
+
+        fractal_config = FractalAnalysisConfig(
+            box_sizes=None,  # Will be auto-generated
+            min_box_size=min_box_size,
+            max_box_size=max_box_size
+        )
         fractal_analyzer = FractalDimensionAnalyzer(fractal_config)
         box_sizes, counts = fractal_analyzer.box_count(field_3d_tensor, threshold=0.5 * field_3d.max())
 
