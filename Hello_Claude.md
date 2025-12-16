@@ -1010,23 +1010,32 @@ User requested: "MP4 videos of notable events should be created with ffmpeg on t
 
 ---
 
-**Last Updated**: 2025-12-16 05:45 UTC
-**Status**: 500-cycle checkpoint run IN PROGRESS on H200 (Cycle 100/500 complete)
-**Findings Report**: `HOLOGRAPHIC_RNN_FINDINGS.md` (committed to main branch)
+**Last Updated**: 2025-12-16 07:00 UTC
+**Status**: ✅ 500-cycle checkpoint run COMPLETED on H200
+**Reports**:
+- `HOLOGRAPHIC_RNN_FINDINGS.md` (preliminary @ Cycle 100)
+- `HOLOGRAPHIC_RNN_FINAL_REPORT.md` (comprehensive final analysis)
 
-### Live Training Status (2025-12-16)
+### Training Results (500 Cycles Complete)
 
 **Configuration**:
-- 20M nodes (20× scale increase)
-- 500 cycles (checkpoint run)
-- GPU-optimized batched evolution
-- VRAM: 50GB peak / 140GB available
-- Speed: 0.11 cycles/sec (~40min ETA for completion)
+- 20M nodes (20× scale increase from 1M baseline)
+- 500 cycles completed in 72.5 minutes
+- GPU-optimized batched evolution ([100×20M] per batch)
+- VRAM: 50.6GB peak / 140GB available (36% utilization)
+- Speed: 0.11 cycles/sec (100% GPU compute saturation)
 
-**Key Discovery (Cycle 100)**:
-- **w windings**: 3.8 → 108.47 (28.5× exploration!)
-- **L QEC layers**: 7 → 9.8 (near maximum)
-- **n parameter**: 2.0 → 4.96 (increased sampling)
-- **Vortex density**: 95.19% (19M vortices at 20M scale)
+**Final Converged Parameters**:
+- **w windings**: 3.8 → **109.63** (28.9× increase)
+- **L QEC layers**: 7 → **9.7** (near maximum depth)
+- **n sampling**: 2.0 → **4.99** (2.5× density increase)
+- **Vortex density**: 82% (16.4M vortices at 20M scale)
+- **RNN value**: 0 → 3,599.5 (strong learning signal)
 
-The RNN is autonomously discovering that ultra-high winding configurations (w~108) maintain high vortex density at mega-scale, contradicting the power-law collapse observed at 50K nodes.
+**Key Discovery**:
+The RNN autonomously discovered that **w≈109-110 windings** is optimal for 20M-node configurations, maintaining high vortex density (82%) where previous 50K-node runs experienced collapse (0.03%). This demonstrates:
+1. **Scale compensation**: w(N) scaling relationship discovered via RL
+2. **Structural optimization**: High-winding helical lattices encode better holography
+3. **QEC saturation**: L≈10 layers appears to be the effective maximum for MERA depth
+
+**Checkpoint Saved**: `agent_20M.pt` (2.9GB) - ready for continuation or transfer learning
