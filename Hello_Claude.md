@@ -479,13 +479,71 @@ python simulations/hierarchical_dynamics/run_simulation.py --no-llm
 - `~/.ssh/ivhl_key` - SSH private key (chmod 600)
 - `~/DEPLOYMENT_STATUS.md` - Deployment notes
 
+### Resuming Testing After Session Disconnect
+
+**Status as of Last Session (2025-12-15)**:
+- ✅ All critical bugs fixed (11D simulation, vLLM, 3D visualization)
+- ✅ vLLM 0.6.3.post1 configured with Qwen/Qwen2-1.5B-Instruct
+- ✅ PyTorch 2.4.0+cu121 installed (compatible with vLLM)
+- ✅ 3D visualization working (200 frames @ ~100-150KB each)
+- ⏸️  Web observer testing incomplete (session ended)
+
+**Quick Resume Commands**:
+
+```bash
+# 1. SSH back into H200 VM
+ssh -i ~/.ssh/ivhl_key root@89.169.111.28
+
+# 2. Activate virtual environment
+source ~/venv/bin/activate
+
+# 3. Navigate to repository
+cd ~/iVHL
+
+# 4. Start vLLM server (in background)
+python -m vllm.entrypoints.openai.api_server \
+  --model Qwen/Qwen2-1.5B-Instruct \
+  --port 8000 \
+  --gpu-memory-utilization 0.3 \
+  --max-model-len 2048 \
+  > /tmp/vllm.log 2>&1 &
+
+# 5. Wait for vLLM to initialize (30 seconds)
+sleep 30
+
+# 6. Verify vLLM is running
+curl http://localhost:8000/v1/models
+
+# 7. Start web monitoring server (in background)
+python -m uvicorn web_monitor.streaming_server:app \
+  --host 0.0.0.0 \
+  --port 8080 \
+  --log-level info \
+  > /tmp/web_server.log 2>&1 &
+
+# 8. Launch test simulation (100 steps for quick verification)
+python simulations/hierarchical_dynamics/run_simulation.py \
+  --device cuda \
+  --timesteps 100 \
+  --output-dir /results/observer_test_$(date +%s)
+
+# 9. In your browser, open:
+# http://89.169.111.28:8080/monitor
+```
+
+**What to Test**:
+1. **3D Frame Streaming**: Verify frames appear in browser at 30 FPS
+2. **AI Assistant Chat**: Ask questions like "What patterns do you see?" in the chat interface
+3. **Real-time Metrics**: Check that entropy/correlation graphs update live
+4. **Whitepaper Generation**: Verify PDF (if LaTeX installed) or Markdown report generated
+
 ### Next Steps After Successful Deployment
 
-1. **Fix vLLM** (optional): Try different model or configure HuggingFace token
-2. **Enable LaTeX**: `sudo apt-get install texlive-latex-base texlive-latex-extra`
-3. **Run longer simulation**: Increase `--timesteps` to 500+ for meaningful results
-4. **Enable multi-user**: See "Multi-User Improvements" section below
-5. **Automate startup**: Create systemd service for web server
+1. **Enable LaTeX**: `sudo apt-get install texlive-latex-base texlive-latex-extra` (for PDF whitepapers)
+2. **Run longer simulation**: Increase `--timesteps` to 500+ for meaningful results
+3. **Enable multi-user**: See "Multi-User Improvements" section below
+4. **Automate startup**: Create systemd service for web server and vLLM
+5. **Production hardening**: Add authentication, HTTPS, rate limiting
 
 ### Key Learnings
 
