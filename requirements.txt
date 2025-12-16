@@ -30,4 +30,4 @@ pyyaml>=6.0
 pytest>=7.4.0
 
 # Optional (quantum chemistry - can be slow to install)
-# pyscf>=2.3.0
+pyscf>=2.3.0

@@ -60,7 +60,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # from ivhl.gft.condensate_dynamics import GrossPitaevskiiEvolution
 # from ivhl.tensor_networks.holography import MERA
 from ivhl.gw.lattice_mode import GWLatticeConfig, GWLatticeProbe
-from ivhl.gw.fractal_analysis import FractalDimensionAnalyzer, HarmonicSeriesDetector
+from ivhl.gw.fractal_analysis import FractalAnalysisConfig, FractalDimensionAnalyzer, HarmonicSeriesDetector
 from ivhl.integration.report_generator import SimulationReport, IntegratedReportGenerator
 
 
@@ -559,7 +559,8 @@ class Full11DHolographicSimulation:
         field_intensity = torch.abs(boundary_field).cpu().numpy()
 
         # Simplified fractal analysis
-        fractal_analyzer = FractalDimensionAnalyzer()
+        fractal_config = FractalAnalysisConfig()
+        fractal_analyzer = FractalDimensionAnalyzer(fractal_config)
         fractal_dim, r_squared = fractal_analyzer.compute_fractal_dimension_1d(field_intensity)
 
         if fractal_dim is None or np.isnan(fractal_dim):
