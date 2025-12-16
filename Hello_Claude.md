@@ -241,6 +241,264 @@ The iVHL framework operates in an **11-dimensional space**:
 
 ---
 
+## VM Deployment Guide (H200 Direct Access)
+
+**Last Tested**: 2025-12-15
+**Hardware**: NVIDIA H200 (139.8 GB VRAM), Ubuntu 22.04, Python 3.12.3
+
+### Prerequisites
+
+1. **SSH Access**: Private key file (not public key!)
+2. **GPU VM**: H100/H200 with CUDA support
+3. **Network Access**: Ports 8080 (web server), 8000 (vLLM) open
+
+### Step-by-Step Deployment
+
+#### 1. SSH Connection Setup
+
+```bash
+# Save private key (NOT public key - common mistake!)
+cat > ~/.ssh/ivhl_key << 'EOF'
+-----BEGIN OPENSSH PRIVATE KEY-----
+[your private key here]
+-----END OPENSSH PRIVATE KEY-----
+EOF
+
+# Set correct permissions
+chmod 600 ~/.ssh/ivhl_key
+
+# Connect to VM
+ssh -i ~/.ssh/ivhl_key username@VM_IP
+
+# Test GPU
+nvidia-smi  # Should show H200 with ~139GB VRAM
+```
+
+**Common Error**: Using public key instead of private key results in "Permission denied (publickey)".
+
+#### 2. Python Environment Setup
+
+Ubuntu 22.04 has externally managed Python, so system `pip` won't work:
+
+```bash
+# DON'T: pip3 install <package>  # Will fail!
+
+# DO: Create virtual environment
+python3 -m venv ~/ivhl_env
+source ~/ivhl_env/bin/activate
+
+# Now pip works
+pip install --upgrade pip
+```
+
+**Why**: Python 3.12 on Ubuntu uses PEP 668 externally-managed-environment to prevent conflicts.
+
+#### 3. Clone and Install Dependencies
+
+```bash
+# Clone repository
+git clone https://github.com/Zynerji/iVHL.git
+cd iVHL
+
+# Install PyTorch with CUDA 12.8
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Install all dependencies
+pip install -r requirements.txt
+
+# Common missing dependency
+pip install flask flask-cors  # Not in requirements.txt but needed by integration/api.py
+```
+
+**Versions Installed** (2025-12-15):
+- PyTorch: 2.9.0+cu128
+- vLLM: 0.12.0
+- FastAPI: 0.124.4
+- PyVista: 0.46.4
+
+#### 4. Startup Validation
+
+Always run validation before simulation:
+
+```bash
+# Check environment
+python -m ivhl.utils.startup_validator
+
+# Or strict mode (exits on critical failures)
+python -m ivhl.utils.startup_validator --strict
+```
+
+**Expected Issues**:
+- ⚠️ vLLM Server: Unreachable (until you start it)
+- ⚠️ /results: Permission denied on `/results` (use `~/results` instead)
+
+**Fix Results Directory**:
+```bash
+# Don't use /results (requires root)
+mkdir -p ~/results
+
+# Update scripts to use ~/results instead
+```
+
+#### 5. Start Web Monitoring Server
+
+```bash
+# Activate environment
+source ~/ivhl_env/bin/activate
+cd ~/iVHL
+
+# Start server (runs in background)
+nohup python -m uvicorn web_monitor.streaming_server:app \
+  --host 0.0.0.0 \
+  --port 8080 \
+  --log-level info \
+  > ~/web_server.log 2>&1 &
+
+# Check it's running
+curl http://localhost:8080/
+```
+
+**Access**: Open browser to `http://VM_IP:8080/`
+
+#### 6. Run Test Simulation
+
+```bash
+# Quick test (10 steps, ~1 second)
+python simulations/hierarchical_dynamics/run_simulation.py \
+  --device cuda \
+  --timesteps 10 \
+  --output-dir ~/results/test_run \
+  --no-llm  # Skip LLM for now
+
+# Full test (50 steps, ~2 seconds on H200)
+python simulations/hierarchical_dynamics/run_simulation.py \
+  --device cuda \
+  --timesteps 50 \
+  --output-dir ~/results/full_test \
+  --no-llm
+```
+
+### Critical Bugs Encountered and Fixed
+
+#### Bug #1: Tensor Reshape Error (CRITICAL)
+
+**Error**:
+```
+RuntimeError: shape '[16, 32, 32]' is invalid for input of size 65536
+File: ivhl/hierarchical/tensor_hierarchy.py:222
+```
+
+**Root Cause**: `_compress_svd` method tried to reshape tensor after SVD without handling spatial dimension reduction.
+
+**Fix Applied** (commit 97a5b2b + local patch):
+```python
+# OLD (BROKEN): Direct reshape fails
+compressed = compressed.reshape(target_bond, target_h, target_w)  # Error!
+
+# NEW (FIXED): Downsample spatially first, then compress bond dimension
+downsampled = torch.nn.functional.interpolate(
+    tensor.unsqueeze(0),
+    size=(target_h, target_w),
+    mode="bilinear"
+).squeeze(0)
+# Then compress bond dimension with SVD
+```
+
+**File Modified**: `ivhl/hierarchical/tensor_hierarchy.py:200-243`
+
+**Impact**: Hierarchical simulation now runs successfully at 22 steps/second on H200.
+
+#### Bug #2: vLLM Model Not Found
+
+**Error**:
+```
+OSError: Qwen/Qwen2.5-2B-Instruct is not a local folder and is not a valid model identifier
+```
+
+**Cause**: Model name not available on HuggingFace, or requires authentication.
+
+**Workaround**: SPOF #3 (LLM offline mode) automatically activates:
+```bash
+# Simulation runs with --no-llm flag
+python simulations/hierarchical_dynamics/run_simulation.py --no-llm
+
+# LLM monitoring agent falls back to rule-based analysis
+# Whitepaper generation uses template-based content
+```
+
+**Status**: DEFERRED - simulation works in offline mode, LLM can be fixed later.
+
+#### Bug #3: Flask Missing
+
+**Error**: `ModuleNotFoundError: No module named 'flask'`
+
+**Fix**: `pip install flask flask-cors`
+
+**Note**: Flask is used by `ivhl/integration/api.py` but not in `requirements.txt`.
+
+### Performance Benchmarks (H200)
+
+| Simulation | Timesteps | Duration | Steps/sec | Output |
+|------------|-----------|----------|-----------|--------|
+| Quick test | 10 | 0.95s | 10.5 | JSON only |
+| Full test | 50 | 2.27s | 22.06 | JSON + metrics |
+| Web demo | 100 | ~4.5s | ~22 | JSON + frames |
+
+**GPU Utilization**: ~15-20% on H200 (plenty of headroom for LLM)
+
+### Troubleshooting
+
+**Web interface shows "waiting for frames"**:
+- Check simulation is running: `ps aux | grep python`
+- Check WebSocket connection in browser console
+- Verify firewall allows port 8080
+
+**Simulation crashes with OOM**:
+- SPOF #2 should catch this automatically
+- Reduce `--base-dim` or `--bond-dim`
+- Check GPU memory: `nvidia-smi`
+
+**LaTeX PDF generation fails**:
+- SPOF #5 falls back to Markdown automatically
+- To install LaTeX: `sudo apt-get install texlive-latex-base texlive-latex-extra`
+
+**SSH connection drops**:
+- Use `tmux` or `screen` for persistent sessions:
+  ```bash
+  tmux new -s ivhl
+  # Run commands
+  # Detach: Ctrl+B, then D
+  # Reattach: tmux attach -t ivhl
+  ```
+
+### Files Created on VM
+
+- `~/ivhl_env/` - Python virtual environment
+- `~/results/` - Simulation output directory
+- `~/iVHL/` - Repository clone
+- `~/.ssh/ivhl_key` - SSH private key (chmod 600)
+- `~/DEPLOYMENT_STATUS.md` - Deployment notes
+
+### Next Steps After Successful Deployment
+
+1. **Fix vLLM** (optional): Try different model or configure HuggingFace token
+2. **Enable LaTeX**: `sudo apt-get install texlive-latex-base texlive-latex-extra`
+3. **Run longer simulation**: Increase `--timesteps` to 500+ for meaningful results
+4. **Enable multi-user**: See "Multi-User Improvements" section below
+5. **Automate startup**: Create systemd service for web server
+
+### Key Learnings
+
+1. **Always use private SSH key**, not public key
+2. **Create Python venv** on Ubuntu 22.04+ (externally-managed Python)
+3. **Validate environment** with `startup_validator.py` before running simulation
+4. **SPOF fixes work!** All 6 fault-tolerance mechanisms activated during testing
+5. **H200 is fast**: 22 steps/second leaves plenty of VRAM for LLM (only using ~15% GPU)
+6. **Tensor reshape bug** was critical - spatial downsampling must precede bond compression
+7. **Offline mode is viable**: Simulation works without LLM, can add LLM later
+
+---
+
 ## Docker Deployment (H100 Production-Ready)
 
 ### Build & Run

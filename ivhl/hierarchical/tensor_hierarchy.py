@@ -202,24 +202,43 @@ class TensorHierarchy:
         tensor: torch.Tensor,
         target_shape: Tuple[int, ...]
     ) -> torch.Tensor:
-        """Compress using SVD (preserves most information)."""
-        # Reshape for SVD
+        """Compress using SVD (preserves most information). FIXED version."""
         bond_dim, h, w = tensor.shape
-        reshaped = tensor.reshape(bond_dim, h * w)
-
-        # SVD
-        U, S, Vt = torch.linalg.svd(reshaped, full_matrices=False)
-
-        # Truncate to target dimension
         target_bond, target_h, target_w = target_shape
-        k = min(target_bond, U.shape[1])
 
-        # Reconstruct with truncation
-        compressed = U[:, :k] @ torch.diag(S[:k]) @ Vt[:k, :]
+        # First, spatially downsample using interpolation
+        downsampled = torch.nn.functional.interpolate(
+            tensor.unsqueeze(0),  # Add batch dim
+            size=(target_h, target_w),
+            mode="bilinear",
+            align_corners=False
+        ).squeeze(0)  # Remove batch dim: [bond_dim, target_h, target_w]
 
-        # Reshape to target
-        compressed = compressed[:target_bond, :]
-        compressed = compressed.reshape(target_bond, target_h, target_w)
+        # Now compress bond dimension if needed
+        if bond_dim > target_bond:
+            # Reshape for SVD
+            reshaped = downsampled.reshape(bond_dim, target_h * target_w)
+
+            # SVD
+            U, S, Vt = torch.linalg.svd(reshaped, full_matrices=False)
+
+            # Reconstruct with truncated bonds
+            k = min(target_bond, U.shape[1])
+            compressed_flat = U[:, :k] @ torch.diag(S[:k]) @ Vt[:k, :]
+
+            # Take only target_bond rows and reshape
+            compressed = compressed_flat[:target_bond, :].reshape(target_bond, target_h, target_w)
+        else:
+            # Bond dim already small enough, just pad if needed
+            if bond_dim < target_bond:
+                padding = torch.zeros(
+                    target_bond - bond_dim, target_h, target_w,
+                    device=downsampled.device,
+                    dtype=downsampled.dtype
+                )
+                compressed = torch.cat([downsampled, padding], dim=0)
+            else:
+                compressed = downsampled
 
         return compressed
 
