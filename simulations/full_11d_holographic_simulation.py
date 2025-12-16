@@ -55,9 +55,10 @@ import time
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import iVHL modules (new package structure)
-from ivhl.resonance.holographic_resonance import HolographicResonanceSimulator
-from ivhl.gft.condensate_dynamics import GFTCondensateSimulator
-from ivhl.tensor_networks.holography import MERATensorNetwork, AdSBulkReconstructor
+# Note: Simulation implements its own methods, not using these classes directly
+# from ivhl.resonance.holographic_resonance import HolographicResonator
+# from ivhl.gft.condensate_dynamics import GrossPitaevskiiEvolution
+# from ivhl.tensor_networks.holography import MERA
 from ivhl.gw.lattice_mode import GWLatticeConfig, GWLatticeProbe
 from ivhl.gw.fractal_analysis import FractalDimensionAnalyzer, HarmonicSeriesDetector
 from ivhl.integration.report_generator import SimulationReport, IntegratedReportGenerator
@@ -558,7 +559,6 @@ class Full11DHolographicSimulation:
         field_intensity = torch.abs(boundary_field).cpu().numpy()
 
         # Simplified fractal analysis
-        from gw_fractal_analysis import FractalDimensionAnalyzer
         fractal_analyzer = FractalDimensionAnalyzer()
         fractal_dim, r_squared = fractal_analyzer.compute_fractal_dimension_1d(field_intensity)
 
