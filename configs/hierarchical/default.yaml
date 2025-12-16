@@ -13,4 +13,4 @@ rendering:
   quality: 85
 
 llm:
-  model: Qwen/Qwen2.5-2B-Instruct
+  model: Qwen/Qwen2-1.5B-Instruct

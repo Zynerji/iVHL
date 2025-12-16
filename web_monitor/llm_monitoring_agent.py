@@ -96,7 +96,7 @@ class LLMMonitoringAgent:
     def __init__(
         self,
         vllm_url: str = "http://localhost:8000/v1/chat/completions",
-        model_name: str = "Qwen/Qwen2.5-2B-Instruct",
+        model_name: str = "Qwen/Qwen2-1.5B-Instruct",
         enable_fallback: bool = True
     ):
         self.vllm_url = vllm_url

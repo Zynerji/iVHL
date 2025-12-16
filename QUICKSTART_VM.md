@@ -96,7 +96,7 @@ If you have >20GB free VRAM:
 ```bash
 # Start vLLM server in background
 python -m vllm.entrypoints.openai.api_server \
-  --model Qwen/Qwen2.5-2B-Instruct \
+  --model Qwen/Qwen2-1.5B-Instruct \
   --port 8000 \
   --gpu-memory-utilization 0.6 \
   --max-model-len 4096 \
