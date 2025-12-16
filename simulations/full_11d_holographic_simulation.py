@@ -558,10 +558,28 @@ class Full11DHolographicSimulation:
         # Fractal dimension of boundary field
         field_intensity = torch.abs(boundary_field).cpu().numpy()
 
-        # Simplified fractal analysis
+        # Simplified fractal analysis - reshape 1D to 3D for box counting
+        # Approximate cube root for grid size
+        grid_size = int(np.ceil(len(field_intensity) ** (1/3)))
+        padded_size = grid_size ** 3
+
+        # Pad to make it fit in a cube
+        if len(field_intensity) < padded_size:
+            field_3d = np.pad(field_intensity, (0, padded_size - len(field_intensity)), mode='constant')
+        else:
+            field_3d = field_intensity[:padded_size]
+
+        field_3d = field_3d.reshape(grid_size, grid_size, grid_size)
+        field_3d_tensor = torch.from_numpy(field_3d).float()
+
+        # Box counting
         fractal_config = FractalAnalysisConfig()
         fractal_analyzer = FractalDimensionAnalyzer(fractal_config)
-        fractal_dim, r_squared = fractal_analyzer.compute_fractal_dimension_1d(field_intensity)
+        box_sizes, counts = fractal_analyzer.box_count(field_3d_tensor, threshold=0.5 * field_3d.max())
+
+        # Compute fractal dimension
+        result = fractal_analyzer.compute_fractal_dimension(box_sizes, counts)
+        fractal_dim = result.get('fractal_dimension', 1.0)
 
         if fractal_dim is None or np.isnan(fractal_dim):
             fractal_dim = 1.0
