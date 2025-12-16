@@ -492,10 +492,11 @@ python simulations/hierarchical_dynamics/run_simulation.py --no-llm
 
 ```bash
 # 1. SSH back into H200 VM
-ssh -i ~/.ssh/ivhl_key root@89.169.111.28
+# IMPORTANT: Username is 'ivhl', not 'root'!
+ssh -i ~/.ssh/h200_key ivhl@89.169.111.28
 
 # 2. Activate virtual environment
-source ~/venv/bin/activate
+source ~/ivhl_env/bin/activate
 
 # 3. Navigate to repository
 cd ~/iVHL
